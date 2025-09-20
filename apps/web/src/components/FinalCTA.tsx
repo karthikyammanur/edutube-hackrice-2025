@@ -9,7 +9,7 @@ export default function FinalCTA(): JSX.Element {
 			<div className="mt-6">
 				<a
 					href="#upload"
-					className="inline-flex items-center px-5 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
+					className="inline-flex items-center px-5 py-3 rounded-xl bg-text text-background font-medium hover:bg-primaryHover transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text"
 				>
 					Upload Lecture
 				</a>
