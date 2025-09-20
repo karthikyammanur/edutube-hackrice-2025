@@ -3,11 +3,27 @@
   "version": "1.0.0",
   "description": "Backend API for EduTube Notes",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test:chains": "tsx src/scripts/test-chains.ts"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@google-cloud/firestore": "^7.10.0",
+    "@google-cloud/storage": "^7.13.0",
+    "@langchain/core": "^0.3.77",
+    "@langchain/google-genai": "^0.2.18",
+    "dotenv": "^17.2.2",
+    "fastify": "^4.26.2",
+    "langchain": "^0.2.14",
+    "twelvelabs-js": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "tsx": "^4.16.0",
+    "typescript": "^5.9.2"
+  }
 }

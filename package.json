@@ -27,6 +27,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "dotenv": "^16.4.5"
   }
 }
