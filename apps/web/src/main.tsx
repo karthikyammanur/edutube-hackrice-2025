@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import Landing from './Landing';
 import Upload from './Upload';
+import Flashcards from './Flashcards';
+import Summary from './Summary';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -21,6 +23,12 @@ function AppRouter(): JSX.Element {
 
 	if (hash === '#upload') {
 		return <Upload />;
+	}
+	if (hash === '#flashcards') {
+		return <Flashcards />;
+	}
+	if (hash === '#summary') {
+		return <Summary />;
 	}
 	return <Landing />;
 }
