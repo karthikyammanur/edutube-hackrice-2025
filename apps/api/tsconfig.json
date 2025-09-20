@@ -13,17 +13,17 @@
     "isolatedModules": true,
     "noEmit": false,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "../../",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "types": ["node"],
-    "baseUrl": ".",
+    "baseUrl": "../../",
     "paths": {
-      "@edutube/ui": ["../../packages/ui"],
-      "@edutube/types": ["../../packages/types"]
+      "@edutube/ui": ["packages/ui"],
+      "@edutube/types": ["packages/types"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../packages/**/*"],
   "exclude": ["node_modules", "dist"]
 }
