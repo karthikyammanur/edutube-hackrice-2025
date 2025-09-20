@@ -2,15 +2,15 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
-import { registerVideoRoutes } from './routes/videos.js';
-import { registerSearchRoutes } from './routes/search.js';
-import { registerExportRoutes } from './routes/export.js';
-import { registerTwelveLabsWebhookRoutes } from './routes/webhooks.twelvelabs.js';
-import { registerNotesRoutes } from './routes/notes.js';
+// import { registerVideoRoutes } from './routes/videos.js';
+// import { registerSearchRoutes } from './routes/search.js';
+// import { registerExportRoutes } from './routes/export.js';
+// import { registerTwelveLabsWebhookRoutes } from './routes/webhooks.twelvelabs.js';
+// import { registerNotesRoutes } from './routes/notes.js';
 // import { registerSSERoutes } from './services/sse.js';
 
 const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 
 async function buildServer() {
   const app = Fastify({ logger: true });
@@ -22,11 +22,11 @@ async function buildServer() {
 
   app.get('/health', async () => ({ ok: true }));
 
-  await registerVideoRoutes(app);
-  await registerSearchRoutes(app);
-  await registerExportRoutes(app);
-  await registerTwelveLabsWebhookRoutes(app);
-  await registerNotesRoutes(app);
+  // await registerVideoRoutes(app);
+  // await registerSearchRoutes(app);
+  // await registerExportRoutes(app);
+  // await registerTwelveLabsWebhookRoutes(app);
+  // await registerNotesRoutes(app);
   // await registerSSERoutes(app);
 
   return app;
