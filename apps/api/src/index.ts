@@ -13,7 +13,7 @@ async function buildServer() {
   const app = Fastify({ logger: true });
 
   await app.register(cors, {
-    origin: (origin, cb) => cb(null, true),
+    origin: (_origin, cb) => cb(null, true),
     credentials: true,
   });
 

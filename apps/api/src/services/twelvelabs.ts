@@ -26,6 +26,8 @@ function requireEnv(name: string): string {
 }
 
 export class TwelveLabsRetriever extends BaseRetriever {
+  lc_namespace = ["twelvelabs", "retrievers"];
+  
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly indexId: string;
@@ -40,7 +42,7 @@ export class TwelveLabsRetriever extends BaseRetriever {
     this.videoId = videoId;
   }
 
-  protected async _getRelevantDocuments(query: string): Promise<Document[]> {
+  async _getRelevantDocuments(query: string): Promise<Document[]> {
     const items = await this.search({
       query,
       indexId: this.indexId,
