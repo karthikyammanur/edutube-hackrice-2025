@@ -121,23 +121,25 @@ function FileItem({
   className,
   children,
   gitStatus,
+  onClick,
   ...props
 }: FileItemProps) {
   return (
     <FileHighlightPrimitive>
       <FilePrimitive
         className={cn(
-          'flex items-center justify-between gap-2 p-2 pointer-events-none',
+          'flex items-center justify-between gap-2 p-2 cursor-pointer',
           gitStatus === 'untracked' && 'text-green-400',
           gitStatus === 'modified' && 'text-amber-400',
           gitStatus === 'deleted' && 'text-red-400',
         )}
+        onClick={onClick}
       >
         <div className="flex items-center gap-2">
           <FileIconPrimitive>
             <Icon className="size-4.5" />
           </FileIconPrimitive>
-          <FileLabelPrimitive className={cn('text-sm', className)} {...props}>
+          <FileLabelPrimitive className={cn('text-sm cursor-pointer', className)} onClick={onClick} {...props}>
             {children}
           </FileLabelPrimitive>
         </div>

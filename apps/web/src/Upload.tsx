@@ -34,9 +34,9 @@ export default function Upload(): JSX.Element {
                                     <FolderTrigger>Uploaded Video</FolderTrigger>
                                     <FolderContent>
                                         <SubFiles>
-                                            <FileItem>Summary</FileItem>
-                                            <FileItem>Quiz</FileItem>
-                                            <FileItem>Flashcards</FileItem>
+                                            <FileItem onClick={() => { window.location.hash = '#summary'; }}>Summary</FileItem>
+                                            <FileItem onClick={() => { window.location.hash = '#upload-quiz'; }}>Quiz</FileItem>
+                                            <FileItem onClick={() => { window.location.hash = '#flashcards'; }}>Flashcards</FileItem>
                                         </SubFiles>
                                     </FolderContent>
                                 </FolderItem>
