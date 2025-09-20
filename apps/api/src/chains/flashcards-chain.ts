@@ -75,7 +75,15 @@ export async function generateFlashcards(
   const chain = buildFlashcardsChain(buildOptions);
   const output = await chain.invoke({ summary, topic, count, style });
   try {
-    const parsed = JSON.parse(output);
+    const cleaned = output
+      .replace(/```json\s*/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    // Try to extract the first JSON array if extra text slipped in
+    const start = cleaned.indexOf("[");
+    const end = cleaned.lastIndexOf("]");
+    const jsonSlice = start !== -1 && end !== -1 ? cleaned.slice(start, end + 1) : cleaned;
+    const parsed = JSON.parse(jsonSlice);
     if (Array.isArray(parsed)) return parsed as FlashcardItem[];
     throw new Error("Model output was not an array");
   } catch (err) {
