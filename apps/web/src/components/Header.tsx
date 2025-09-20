@@ -10,7 +10,6 @@ export default function Header(): JSX.Element {
 			<div className="hidden md:flex items-center gap-8 text-sm">
 				<a className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline" href="#how-heading">How it works</a>
 				<a className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline" href="#features-heading">Features</a>
-				<a className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline" href="#cta">Pricing</a>
 			</div>
 			<div className="flex items-center gap-3">
 				<a
