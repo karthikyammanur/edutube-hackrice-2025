@@ -1,22 +1,21 @@
 import { BaseRetriever } from "@langchain/core/retrievers";
 import { Document } from "@langchain/core/documents";
+import { TwelveLabs, TwelvelabsApi } from "twelvelabs-js";
 
-type TwelveLabsSearchItem = {
-  id?: string;
-  text?: string;
-  score?: number;
-  start?: number;
-  end?: number;
-  metadata?: Record<string, unknown>;
+type VideoSegment = {
+  embeddingScope?: string;
+  embeddingOption?: string;
+  startOffsetSec?: number;
+  endOffsetSec?: number;
+  embeddings?: number[];
 };
 
-interface TwelveLabsSearchParams {
-  query: string;
-  indexId: string;
-  videoId?: string;
-  topK?: number;
-  minScore?: number;
-  timeoutMs?: number;
+interface TwelveLabsEmbeddingParams {
+  videoUrl: string;
+  modelName?: string;
+  videoClipLength?: number;
+  videoStartOffsetSec?: number;
+  videoEndOffsetSec?: number;
 }
 
 function requireEnv(name: string): string {
@@ -28,107 +27,114 @@ function requireEnv(name: string): string {
 export class TwelveLabsRetriever extends BaseRetriever {
   lc_namespace = ["twelvelabs", "retrievers"];
   
-  private readonly apiKey: string;
-  private readonly baseUrl: string;
-  private readonly indexId: string;
-  private readonly videoId?: string;
-
-  constructor({ indexId, videoId }: { indexId: string; videoId?: string }) {
+  private readonly client: TwelveLabs;
+  private taskId?: string;
+  
+  constructor() {
     super();
-    this.apiKey = requireEnv("TWELVELABS_API_KEY");
-    this.baseUrl =
-      process.env.TWELVELABS_BASE_URL || "https://api.twelvelabs.io/v1";
-    this.indexId = indexId;
-    this.videoId = videoId;
+    const apiKey = requireEnv("TWELVELABS_API_KEY");
+    this.client = new TwelveLabs({ apiKey });
   }
 
   async _getRelevantDocuments(query: string): Promise<Document[]> {
-    const items = await this.search({
-      query,
-      indexId: this.indexId,
-      videoId: this.videoId,
-      topK: 5,
-      minScore: 0.2,
-      timeoutMs: 15_000,
-    });
-
-    return items.map((it, i) =>
-      new Document({
-        pageContent: (it.text ?? "").trim() || "(no transcript available)",
-        metadata: {
-          source: "twelvelabs",
-          indexId: this.indexId,
-          videoId: this.videoId,
-          hitId: it.id ?? `hit-${i}`,
-          score: it.score ?? null,
-          start: it.start ?? null,
-          end: it.end ?? null,
-          ...(it.metadata ?? {}),
-        },
-      })
-    );
-  }
-
-  async search(params: TwelveLabsSearchParams): Promise<TwelveLabsSearchItem[]> {
-    const {
-      query,
-      indexId,
-      videoId,
-      topK = 5,
-      minScore = 0,
-      timeoutMs = 15_000,
-    } = params;
-
-    const url = new URL(`${this.baseUrl}/indexes/${indexId}/search`);
-    const body: Record<string, unknown> = {
-      query,
-      topK,
-      // add other options supported by your TL plan, e.g.:
-      // granularity: "clip",
-      // return: ["start","end","text","scene","ocr","objects"]
-    };
-    if (videoId) body.video_id = videoId;
-
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), timeoutMs);
-
-    const res = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Most TL REST endpoints use x-api-key:
-        "x-api-key": this.apiKey,
-      },
-      body: JSON.stringify(body),
-      signal: ac.signal,
-    }).catch((e) => {
-      clearTimeout(t);
-      throw e;
-    });
-    clearTimeout(t);
-
-    if (!res.ok) {
-      const msg = await res.text().catch(() => "");
-      throw new Error(
-        `TwelveLabs search failed: ${res.status} ${res.statusText} - ${msg}`
-      );
+    // For now, return the embedded video segments as documents
+    // This is a simplified approach - in a real implementation, you'd want to
+    // perform semantic search using the embeddings
+    if (!this.taskId) {
+      throw new Error("No video embeddings available. Please upload a video first using uploadVideo().");
     }
 
-    const json = (await res.json()) as
-      | { results?: TwelveLabsSearchItem[] }
-      | TwelveLabsSearchItem[];
+    const videoWithEmbeddings = await this.client.embed.tasks.retrieve(this.taskId, {
+      embeddingOption: ["visual-text", "audio"],
+    });
 
-    const results = Array.isArray(json) ? json : json.results ?? [];
-    return results
-      .filter((h) => (h.score ?? 0) >= minScore)
-      .slice(0, topK)
-      .map((h) => ({
-        id: h.id,
-        text: h.text ?? "",
-        score: h.score,
-        start: h.start,
-        end: h.end,
-        metadata: h.metadata ?? {},
-      }));
+    const documents: Document[] = [];
+    
+    if (videoWithEmbeddings.videoEmbedding?.segments) {
+      videoWithEmbeddings.videoEmbedding.segments.forEach((segment, index) => {
+        const content = `Video segment ${index + 1}: ${segment.embeddingScope} content from ${segment.startOffsetSec}s to ${segment.endOffsetSec}s`;
+        
+        documents.push(new Document({
+          pageContent: content,
+          metadata: {
+            source: "twelvelabs",
+            taskId: this.taskId,
+            embeddingScope: segment.embeddingScope,
+            embeddingOption: segment.embeddingOption,
+            startOffsetSec: segment.startOffsetSec,
+            endOffsetSec: segment.endOffsetSec,
+            embeddingLength: segment.float?.length || 0,
+          },
+        }));
+      });
+    }
+
+    return documents;
+  }
+
+  async getRelevantDocuments(query: string): Promise<Document[]> {
+    return this._getRelevantDocuments(query);
+  }
+
+  async uploadVideo(params: TwelveLabsEmbeddingParams): Promise<string> {
+    const {
+      videoUrl,
+      modelName = "Marengo-retrieval-2.7",
+      videoClipLength,
+      videoStartOffsetSec,
+      videoEndOffsetSec,
+    } = params;
+
+    console.log(`Creating video embedding task for: ${videoUrl}`);
+    
+    const task = await this.client.embed.tasks.create({
+      modelName,
+      videoUrl,
+      videoClipLength,
+      videoStartOffsetSec,
+      videoEndOffsetSec,
+    });
+
+    console.log(`Created video embedding task: id=${task.id}`);
+    this.taskId = task.id!;
+
+    return task.id!;
+  }
+
+  async waitForEmbedding(taskId?: string): Promise<TwelvelabsApi.embed.TasksStatusResponse> {
+    const id = taskId || this.taskId;
+    if (!id) {
+      throw new Error("No task ID available");
+    }
+
+    console.log("Waiting for embedding to complete...");
+    
+    const status = await this.client.embed.tasks.waitForDone(id, {
+      sleepInterval: 5,
+      callback: (task: TwelvelabsApi.embed.TasksStatusResponse) => {
+        console.log(`  Status=${task.status}`);
+      },
+    });
+
+    console.log(`Embedding done: ${status.status}`);
+    return status;
+  }
+
+  async getEmbeddings(): Promise<TwelvelabsApi.embed.TasksRetrieveResponse | null> {
+    if (!this.taskId) {
+      return null;
+    }
+
+    return await this.client.embed.tasks.retrieve(this.taskId, {
+      embeddingOption: ["visual-text", "audio"],
+    });
+  }
+
+  getTaskId(): string | undefined {
+    return this.taskId;
+  }
+
+  setTaskId(taskId: string): void {
+    this.taskId = taskId;
   }
 }
