@@ -237,8 +237,7 @@ export class TwelveLabsRetriever {
   }
 
   /**
-   * Search for relevant video segments using semantic similarity
-   * This is the killer feature for lecture search!
+   * Search for relevant video segments using TwelveLabs' own ranking
    */
   async searchVideo(params: {
     videoId: string;
@@ -249,49 +248,47 @@ export class TwelveLabsRetriever {
     const { videoId, taskId, query, limit = 10 } = params;
 
     try {
-      // Get the video embeddings
-      const embeddings = await this.getClient().embed.tasks.retrieve(taskId, {
-        embeddingOption: ["visual-text", "audio"],
-      });
-
-      if (!embeddings?.videoEmbedding?.segments) {
-        throw new Error("No video segments available for search");
+      // Determine the correct index from the task when possible
+      let indexId: string;
+      try {
+        const task = await this.getClient().tasks.retrieve(taskId as any);
+        indexId = (task as any)?.indexId || (await this.getDefaultIndexId());
+      } catch (_) {
+        indexId = await this.getDefaultIndexId();
       }
 
-      // For now, we'll use a simple text-based matching approach
-      // In a production system, you'd want to use the actual embeddings
-      // and compute cosine similarity with the query embedding
-      const segments = embeddings.videoEmbedding.segments;
-      
-      // Create search hits with confidence scores
-      const hits: SearchHit[] = [];
-      
-      segments.forEach((segment, index) => {
-        if (segment.startOffsetSec !== undefined && segment.endOffsetSec !== undefined) {
-          // Simple relevance scoring based on text similarity
-          // In production, this would use actual semantic similarity
-          const content = `${segment.embeddingScope} content from ${segment.startOffsetSec}s to ${segment.endOffsetSec}s`;
-          const confidence = this.calculateRelevanceScore(query, content);
-          
-          if (confidence > 0.1) { // Only include somewhat relevant results
-            hits.push({
-              videoId,
-              startSec: segment.startOffsetSec,
-              endSec: segment.endOffsetSec,
-              text: this.generateSegmentDescription(segment, index),
-              confidence,
-              embeddingScope: segment.embeddingScope || 'unknown',
-              deepLink: `/watch?v=${videoId}#t=${Math.floor(segment.startOffsetSec)}`
-            });
-          }
-        }
-      });
+      // Use TwelveLabs semantic search ranked results
+      const searchResult = await this.getClient().search.query({
+        indexId,
+        queryText: query,
+        searchOptions: ['visual'],
+        pageLimit: Math.max(limit, 50),
+      } as any);
 
-      // Sort by confidence (relevance) and limit results
-      return hits
-        .sort((a, b) => b.confidence - a.confidence)
-        .slice(0, limit);
+      const results: any[] = (searchResult as any)?.data || [];
 
+      // Keep TwelveLabs ranking; filter to requested videoId only
+      const filtered = results.filter((r: any) => r.videoId === videoId);
+
+      const hits: SearchHit[] = (filtered.length > 0 ? filtered : results)
+        .slice(0, limit)
+        .map((r: any, i: number) => {
+          const start = r.start ?? r.startSec ?? r.start_offset ?? 0;
+          const end = r.end ?? r.endSec ?? r.end_offset ?? start;
+          const text = r.text || `Visual segment ${i + 1} (${this.formatTime(start)} - ${this.formatTime(end)})`;
+          const confidence = typeof r.confidence === 'number' ? r.confidence : 0.5;
+          return {
+            videoId: r.videoId || videoId,
+            startSec: start,
+            endSec: end,
+            text,
+            confidence,
+            embeddingScope: 'visual',
+            deepLink: `/watch?v=${r.videoId || videoId}#t=${Math.floor(start)}`,
+          } as SearchHit;
+        });
+
+      return hits;
     } catch (error) {
       console.error('Error searching video:', error);
       throw new Error(`Failed to search video: ${(error as Error).message}`);

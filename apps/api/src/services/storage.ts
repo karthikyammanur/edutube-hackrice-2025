@@ -1,4 +1,15 @@
 import { Storage } from '@google-cloud/storage';
+import fs from 'node:fs';
+
+// If GOOGLE_APPLICATION_CREDENTIALS or GCS_CREDENTIALS points to a non-existent file,
+// drop it to allow Application Default Credentials (ADC) fallback.
+(() => {
+  const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GCS_CREDENTIALS;
+  if (credPath && !fs.existsSync(credPath)) {
+    console.warn(`Credential path set but not found at "${credPath}". Falling back to ADC (gcloud).`);
+    delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  }
+})();
 
 const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT,

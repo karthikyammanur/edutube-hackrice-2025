@@ -27,6 +27,16 @@
     "packages/*"
   ],
   "devDependencies": {
+<<<<<<< Updated upstream
     "typescript": "^5.0.0"
+=======
+    "dotenv": "^16.4.5",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@esbuild/darwin-arm64": "^0.25.10",
+    "@google/generative-ai": "^0.24.1",
+    "fluent-ffmpeg": "^2.1.3"
+>>>>>>> Stashed changes
   }
 }
