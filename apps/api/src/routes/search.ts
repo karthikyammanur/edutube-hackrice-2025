@@ -57,7 +57,20 @@ export async function registerSearchRoutes(app: FastifyInstance) {
       }
 
       // Perform semantic search
-      const retriever = new TwelveLabsRetriever();
+      let retriever;
+      try {
+        retriever = new TwelveLabsRetriever();
+      } catch (error) {
+        if ((error as Error).message.includes('TWELVELABS_API_KEY')) {
+          return reply.code(503).send({ 
+            error: 'Search not available - TwelveLabs API key not configured',
+            videoId,
+            query: query.trim()
+          });
+        }
+        throw error;
+      }
+      
       const searchHits = await retriever.searchVideo({
         videoId,
         taskId: video.taskId,
@@ -75,7 +88,17 @@ export async function registerSearchRoutes(app: FastifyInstance) {
       let summary = null;
       if (summarize && searchHits.length > 0) {
         try {
-          const gemini = new GeminiService();
+          let gemini;
+          try {
+            gemini = new GeminiService();
+          } catch (error) {
+            if ((error as Error).message.includes('GOOGLE_API_KEY')) {
+              app.log.warn('Gemini API key not configured, skipping summary generation');
+              throw new Error('Gemini API key not configured');
+            }
+            throw error;
+          }
+          
           const context = searchHits
             .map((hit, i) => `# Result ${i + 1} (${hit.startSec}-${hit.endSec}s)\n${hit.text}`)
             .join('\n\n');
@@ -121,11 +144,35 @@ export async function registerSearchRoutes(app: FastifyInstance) {
     const indexId = body.indexId || process.env.TWELVELABS_INDEX_ID;
     if (!indexId) return reply.code(400).send({ error: 'indexId is required (or set TWELVELABS_INDEX_ID)' });
 
-    const retriever = new TwelveLabsRetriever();
+    let retriever;
+    try {
+      retriever = new TwelveLabsRetriever();
+    } catch (error) {
+      if ((error as Error).message.includes('TWELVELABS_API_KEY')) {
+        return reply.code(503).send({ 
+          error: 'Search not available - TwelveLabs API key not configured',
+          query
+        });
+      }
+      throw error;
+    }
+    
     const docs = await retriever.getRelevantDocuments(query);
 
     if (body.summarize) {
-      const gemini = new GeminiService();
+      let gemini;
+      try {
+        gemini = new GeminiService();
+      } catch (error) {
+        if ((error as Error).message.includes('GOOGLE_API_KEY')) {
+          return reply.code(503).send({ 
+            error: 'Summary not available - Gemini API key not configured',
+            query,
+            docs
+          });
+        }
+        throw error;
+      }
       const context = docs.map((d, i) => `# Result ${i + 1}\n${d.pageContent}`).join('\n\n');
       const summary = await gemini.summarize(context, 'Summarize these video segments into structured study notes.');
       return reply.send({ query, docs, summary });

@@ -13,23 +13,44 @@ export async function registerVideoRoutes(app: FastifyInstance) {
     const fileName = body.fileName || 'video.mp4';
     const contentType = body.contentType || 'video/mp4';
     const objectName = Gcs.objectPath('raw', videoId, fileName);
-    const url = await Gcs.generateV4UploadSignedUrl(objectName, contentType);
     
-    // Pre-create video metadata with uploaded status
-    const now = new Date().toISOString();
-    const meta: VideoMetadata = {
-      id: videoId,
-      ownerId: body.ownerId,
-      title: 'Untitled',
-      status: 'uploaded',
-      gcsObject: objectName,
-      createdAt: now,
-      updatedAt: now,
-      extra: {},
-    };
-    await Db.upsertVideo(meta);
-    
-    return reply.send({ videoId, url, objectName });
+    try {
+      const url = await Gcs.generateV4UploadSignedUrl(objectName, contentType);
+      
+      // Pre-create video metadata with uploaded status
+      const now = new Date().toISOString();
+      const meta: VideoMetadata = {
+        id: videoId,
+        ownerId: body.ownerId,
+        title: 'Untitled',
+        status: 'uploaded',
+        gcsObject: objectName,
+        createdAt: now,
+        updatedAt: now,
+        extra: {},
+      };
+      
+      try {
+        await Db.upsertVideo(meta);
+      } catch (dbError) {
+        app.log.warn(dbError, 'Failed to save video metadata, continuing with signed URL');
+        // Continue even if DB save fails
+      }
+      
+      return reply.send({ videoId, url, objectName });
+      
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      app.log.error(error, 'Failed to generate upload URL');
+      
+      if (errorMessage.includes('GCS_BUCKET')) {
+        return reply.code(503).send({ 
+          error: 'File upload not available - Google Cloud Storage not configured'
+        });
+      }
+      
+      return reply.code(500).send({ error: 'Failed to generate upload URL' });
+    }
   });
 
   // Kick off TwelveLabs indexing for uploaded videos
@@ -38,7 +59,19 @@ export async function registerVideoRoutes(app: FastifyInstance) {
     if (!body.id) return reply.code(400).send({ error: 'id is required' });
     
     // Get existing video metadata
-    const existingMeta = await Db.getVideo(body.id);
+    let existingMeta;
+    try {
+      existingMeta = await Db.getVideo(body.id);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes('GOOGLE_CLOUD_PROJECT') || errorMessage.includes('credentials')) {
+        return reply.code(503).send({ 
+          error: 'Database not available - Google Cloud credentials not configured'
+        });
+      }
+      return reply.code(500).send({ error: 'Database error' });
+    }
+    
     if (!existingMeta) return reply.code(404).send({ error: 'Video not found' });
     
     const now = new Date().toISOString();
@@ -68,22 +101,59 @@ export async function registerVideoRoutes(app: FastifyInstance) {
         
         console.log(`Started TwelveLabs indexing for video ${meta.id}, taskId: ${taskId}`);
       } catch (error) {
-        console.error(`Failed to start TwelveLabs indexing for video ${meta.id}:`, error);
-        meta.status = 'failed';
-        meta.extra = { ...meta.extra, error: (error as Error).message };
+        const errorMessage = (error as Error).message;
+        console.error(`Failed to start TwelveLabs indexing for video ${meta.id}:`, errorMessage);
+        
+        // If API key is missing, set status to uploaded (no indexing available)
+        if (errorMessage.includes('TWELVELABS_API_KEY')) {
+          console.log(`TwelveLabs API key not configured, skipping indexing for video ${meta.id}`);
+          meta.status = 'uploaded'; // Keep as uploaded, no indexing
+          meta.extra = { ...meta.extra, note: 'TwelveLabs indexing not available (API key not configured)' };
+        } else {
+          meta.status = 'failed';
+          meta.extra = { ...meta.extra, error: errorMessage };
+        }
       }
     }
     
-    await Db.upsertVideo(meta);
+    try {
+      await Db.upsertVideo(meta);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      app.log.error(error, 'Failed to save video metadata');
+      if (errorMessage.includes('GOOGLE_CLOUD_PROJECT') || errorMessage.includes('credentials')) {
+        return reply.code(503).send({ 
+          error: 'Database not available - Google Cloud credentials not configured',
+          videoId: body.id
+        });
+      }
+      return reply.code(500).send({ error: 'Failed to save video' });
+    }
+    
     return reply.code(201).send(meta);
   });
 
   // Fetch one video metadata
   app.get('/videos/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const meta = await Db.getVideo(id);
-    if (!meta) return reply.code(404).send({ error: 'Not found' });
-    return reply.send(meta);
+    
+    try {
+      const meta = await Db.getVideo(id);
+      if (!meta) return reply.code(404).send({ error: 'Not found' });
+      return reply.send(meta);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      app.log.error(error, `Failed to get video ${id}`);
+      
+      if (errorMessage.includes('GOOGLE_CLOUD_PROJECT') || errorMessage.includes('credentials')) {
+        return reply.code(503).send({ 
+          error: 'Database not available - Google Cloud credentials not configured',
+          videoId: id
+        });
+      }
+      
+      return reply.code(500).send({ error: 'Internal server error' });
+    }
   });
 
   // Signed upload URL
@@ -93,8 +163,20 @@ export async function registerVideoRoutes(app: FastifyInstance) {
     const fileName = body.fileName || 'video.mp4';
     const contentType = body.contentType || 'video/mp4';
     const objectName = Gcs.objectPath('raw', id, fileName);
-    const url = await Gcs.generateV4UploadSignedUrl(objectName, contentType);
-    return reply.send({ url, objectName });
+    
+    try {
+      const url = await Gcs.generateV4UploadSignedUrl(objectName, contentType);
+      return reply.send({ url, objectName });
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes('GCS_BUCKET')) {
+        return reply.code(503).send({ 
+          error: 'File upload not available - Google Cloud Storage not configured',
+          videoId: id
+        });
+      }
+      return reply.code(500).send({ error: 'Failed to generate upload URL' });
+    }
   });
 
   // Signed download URL (thumbnail or raw)
@@ -102,14 +184,38 @@ export async function registerVideoRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const q = req.query as { kind?: 'raw' | 'thumb' | 'derived'; fileName?: string };
     const objectName = Gcs.objectPath(q.kind || 'raw', id, q.fileName || 'video.mp4');
-    const url = await Gcs.generateV4DownloadSignedUrl(objectName);
-    return reply.send({ url, objectName });
+    
+    try {
+      const url = await Gcs.generateV4DownloadSignedUrl(objectName);
+      return reply.send({ url, objectName });
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes('GCS_BUCKET')) {
+        return reply.code(503).send({ 
+          error: 'File download not available - Google Cloud Storage not configured',
+          videoId: id
+        });
+      }
+      return reply.code(500).send({ error: 'Failed to generate download URL' });
+    }
   });
 
   // Poll video status and segments (fallback for webhook debugging)
   app.get('/videos/:id/status', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const video = await Db.getVideo(id);
+    let video;
+    try {
+      video = await Db.getVideo(id);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes('GOOGLE_CLOUD_PROJECT') || errorMessage.includes('credentials')) {
+        return reply.code(503).send({ 
+          error: 'Database not available - Google Cloud credentials not configured',
+          videoId: id
+        });
+      }
+      return reply.code(500).send({ error: 'Database error' });
+    }
     
     if (!video) {
       return reply.code(404).send({ error: 'Video not found' });
@@ -128,8 +234,8 @@ export async function registerVideoRoutes(app: FastifyInstance) {
           // Processing completed, update status manually
           const now = new Date().toISOString();
           const segments = embeddings.videoEmbedding.segments
-            .filter(seg => seg.startOffsetSec !== undefined && seg.endOffsetSec !== undefined)
-            .map((seg, index) => ({
+            .filter((seg: any) => seg.startOffsetSec !== undefined && seg.endOffsetSec !== undefined)
+            .map((seg: any, index: number) => ({
               id: `${video.id}_${index}`,
               videoId: video.id,
               startSec: seg.startOffsetSec!,
@@ -142,10 +248,6 @@ export async function registerVideoRoutes(app: FastifyInstance) {
             }));
           
           // Persist segments and update status
-          if (segments.length > 0) {
-            await Db.upsertVideoSegments(segments);
-          }
-          
           const updatedVideo = {
             ...video,
             status: 'ready' as const,
@@ -154,7 +256,16 @@ export async function registerVideoRoutes(app: FastifyInstance) {
             segments: segments.slice(0, 10), // Include first 10 segments in response
           };
           
-          await Db.upsertVideo(updatedVideo);
+          try {
+            if (segments.length > 0) {
+              await Db.upsertVideoSegments(segments);
+            }
+            
+            await Db.upsertVideo(updatedVideo);
+          } catch (dbError) {
+            app.log.error(dbError, 'Failed to save video segments/status to DB');
+            // Continue with response even if DB save fails
+          }
           
           return reply.send({
             ...updatedVideo,
@@ -163,15 +274,29 @@ export async function registerVideoRoutes(app: FastifyInstance) {
           });
         }
       } catch (error) {
-        console.error(`Error checking TwelveLabs status for video ${id}:`, error);
-        // Don't fail the request, just return current status
+        const errorMessage = (error as Error).message;
+        console.error(`Error checking TwelveLabs status for video ${id}:`, errorMessage);
+        
+        // If API key is missing, update video status to indicate indexing not available
+        if (errorMessage.includes('TWELVELABS_API_KEY')) {
+          console.log(`TwelveLabs API key not configured, cannot check status for video ${id}`);
+          // Don't fail the request, just return current status with note
+        } else {
+          // Don't fail the request, just return current status
+        }
       }
     }
 
     // Get segments if video is ready
     let segments = video.segments || [];
     if (video.status === 'ready' && (!segments || segments.length === 0)) {
-      segments = await Db.getVideoSegments(id);
+      try {
+        segments = await Db.getVideoSegments(id);
+      } catch (error) {
+        app.log.error(error, `Failed to get video segments for ${id}`);
+        // Continue with empty segments if DB call fails
+        segments = [];
+      }
     }
 
     return reply.send({
