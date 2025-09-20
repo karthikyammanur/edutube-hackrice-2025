@@ -5,6 +5,7 @@ import Landing from './Landing';
 import Upload from './Upload';
 import Flashcards from './Flashcards';
 import Summary from './Summary';
+import Quiz from './Quiz';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -29,6 +30,9 @@ function AppRouter(): JSX.Element {
 	}
 	if (hash === '#summary') {
 		return <Summary />;
+	}
+	if (hash === '#quiz') {
+		return <Quiz />;
 	}
 	return <Landing />;
 }
