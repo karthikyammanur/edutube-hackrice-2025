@@ -5,9 +5,10 @@ import { registerVideoRoutes } from './routes/videos.js';
 import { registerSearchRoutes } from './routes/search.js';
 import { registerExportRoutes } from './routes/export.js';
 import { registerTwelveLabsWebhookRoutes } from './routes/webhooks.twelvelabs.js';
+import { registerSSERoutes } from './services/sse.js';
 
 const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '127.0.0.1';
 
 async function buildServer() {
   const app = Fastify({ logger: true });
@@ -23,6 +24,7 @@ async function buildServer() {
   await registerSearchRoutes(app);
   await registerExportRoutes(app);
   await registerTwelveLabsWebhookRoutes(app);
+  await registerSSERoutes(app);
 
   return app;
 }
