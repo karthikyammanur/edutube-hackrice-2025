@@ -74,7 +74,16 @@ export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
         // Video embedding completed successfully
         try {
           // Retrieve segments from TwelveLabs
-          const retriever = new TwelveLabsRetriever();
+          let retriever;
+          try {
+            retriever = new TwelveLabsRetriever();
+          } catch (error) {
+            if ((error as Error).message.includes('TWELVELABS_API_KEY')) {
+              app.log.warn('TwelveLabs API key not configured, cannot retrieve segments');
+              throw new Error('TwelveLabs API key not configured');
+            }
+            throw error;
+          }
           retriever.setTaskId(payload.task_id);
           const embeddings = await retriever.getEmbeddings();
           
@@ -83,8 +92,8 @@ export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
           
           if (embeddings?.videoEmbedding?.segments) {
             segments = embeddings.videoEmbedding.segments
-              .filter(seg => seg.startOffsetSec !== undefined && seg.endOffsetSec !== undefined)
-              .map((seg, index) => ({
+              .filter((seg: any) => seg.startOffsetSec !== undefined && seg.endOffsetSec !== undefined)
+              .map((seg: any, index: number) => ({
                 id: `${video.id}_${index}`,
                 videoId: video.id,
                 startSec: seg.startOffsetSec!,
