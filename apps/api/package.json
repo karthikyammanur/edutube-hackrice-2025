@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test:chains": "tsx src/scripts/test-chains.ts"
   },
   "dependencies": {
     "@langchain/core": "^0.3.77",
-    "@langchain/google-genai": "^0.2.18"
+    "@langchain/google-genai": "^0.2.18",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.11.30"
