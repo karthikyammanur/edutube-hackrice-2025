@@ -1,9 +1,7 @@
 import { TwelveLabsRetriever } from '../src/services/twelvelabs.js';
-import { readFile, access } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { constants } from 'fs';
 
 // Load .env file from the api directory
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -18,49 +16,30 @@ function requireEnv(name: string): string {
   return value;
 }
 
-// Helper to check if file exists
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path, constants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Helper to sleep for a given number of milliseconds
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function createIndex(apiKey: string): Promise<string> {
-  const url = 'https://api.twelvelabs.io/v1/indexes';
-  const body = {
-    name: `test-index-${Date.now()}`,
-    engines: [
-      {
-        name: 'marengo2.6',
-        options: ['visual', 'conversation']
-      }
-    ]
-  };
-
-  console.log('Creating new index...');
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,  // Fixed: Use x-api-key instead of Authorization
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
+// Test video embedding functionality
+async function testVideoEmbedding(retriever: TwelveLabsRetriever): Promise<string> {
+  console.log('Testing video embedding...');
+  
+  // You can use any publicly accessible video URL for testing
+  const testVideoUrl = process.env.TEST_VIDEO_URL || 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4';
+  
+  console.log(`Uploading video: ${testVideoUrl}`);
+  
+  const taskId = await retriever.uploadVideo({
+    videoUrl: testVideoUrl,
+    modelName: 'Marengo-retrieval-2.7',
+    videoClipLength: 5
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to create index: ${response.status} - ${error}`);
-  }
-
-  const data = await response.json();
-  console.log(`Created index: ${data.id}`);
-  return data.id;
+  
+  console.log(`Video upload task created: ${taskId}`);
+  
+  // Wait for embedding to complete
+  await retriever.waitForEmbedding();
+  
+  return taskId;
 }
 
 async function uploadVideo(apiKey: string, indexId: string, videoPath: string): Promise<string> {
@@ -69,7 +48,7 @@ async function uploadVideo(apiKey: string, indexId: string, videoPath: string): 
     throw new Error(`Video file not found: ${videoPath}`);
   }
 
-  const createTaskUrl = 'https://api.twelvelabs.io/v1/tasks';
+  const createTaskUrl = 'https://api.twelvelabs.io/v1.2/tasks';
   const videoBuffer = await readFile(videoPath);
   
   console.log(`Uploading video from ${videoPath} (${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB)...`);
@@ -111,7 +90,7 @@ async function uploadVideo(apiKey: string, indexId: string, videoPath: string): 
 }
 
 async function waitForIndexing(apiKey: string, taskId: string): Promise<string> {
-  const url = `https://api.twelvelabs.io/v1/tasks/${taskId}`;
+  const url = `https://api.twelvelabs.io/v1.2/tasks/${taskId}`;
   let attempts = 0;
   const maxAttempts = 60; // 5 minutes max wait
 
@@ -146,7 +125,7 @@ async function waitForIndexing(apiKey: string, taskId: string): Promise<string> 
 }
 
 async function deleteIndex(apiKey: string, indexId: string): Promise<void> {
-  const url = `https://api.twelvelabs.io/v1/indexes/${indexId}`;
+  const url = `https://api.twelvelabs.io/v1.2/indexes/${indexId}`;
   
   console.log(`Deleting index ${indexId}...`);
   const response = await fetch(url, {
