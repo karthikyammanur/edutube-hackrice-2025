@@ -1,6 +1,6 @@
-import { summarize } from "../summarize-chain";
-import { generateFlashcards, FlashcardItem } from "../flashcards-chain";
-import { generateQuiz, QuizQuestion } from "../quiz-chain";
+import { summarize } from "../chains/summarize-chain";
+import { generateFlashcards, FlashcardItem } from "../chains/flashcards-chain";
+import { generateQuiz, QuizQuestion } from "../chains/quiz-chain";
 import fs from "node:fs";
 import path from "node:path";
 
