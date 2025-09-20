@@ -1,0 +1,32 @@
+{
+  "name": "edutube-notes",
+  "version": "1.0.0",
+  "description": "AI-powered note-taking for educational videos",
+  "main": "index.js",
+  "scripts": {
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:api": "cd apps/api && npm run dev",
+    "build": "npm run build:web && npm run build:api",
+    "build:web": "cd apps/web && npm run build",
+    "build:api": "cd apps/api && npm run build",
+    "install:all": "npm install && cd apps/web && npm install && cd ../api && npm install"
+  },
+  "keywords": [
+    "hackathon",
+    "education",
+    "ai",
+    "notes",
+    "video",
+    "twelvelabs",
+    "gemini"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

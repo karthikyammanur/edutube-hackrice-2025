@@ -1,0 +1,13 @@
+{
+  "name": "edutube-notes-api",
+  "version": "1.0.0",
+  "description": "Backend API for EduTube Notes",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
