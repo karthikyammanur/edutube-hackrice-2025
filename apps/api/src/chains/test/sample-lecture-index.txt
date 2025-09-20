@@ -1,0 +1,40 @@
+Course: Signals & Systems
+Lecture: Fourier Series Basics
+Instructor: Dr. A. Smith
+Date: 2024-09-12
+
+[00:00] Segment: Introduction — concepts: Fourier series; periodic signals; captions: "In this lecture we approximate periodic signals as sums of sinusoids."
+
+[02:15] Segment: Sine and Cosine Basis — concepts: orthogonality; basis functions; graphics: unit circle diagram; captions: "Orthogonal basis functions simplify coefficient computation."
+
+[05:58] Segment: Period and Fundamental Frequency — concepts: period T; fundamental frequency ω0; captions: "For period T, ω0 = 2π/T."
+
+[07:42] Segment: Coefficients — concepts: an; bn; c0; formulas: 
+  an = (2/T)∫ x(t) cos(nω0 t) dt; 
+  bn = (2/T)∫ x(t) sin(nω0 t) dt; 
+  c0 = (1/T)∫ x(t) dt
+  captions: "Coefficients project x(t) onto orthogonal sinusoids."
+
+[10:20] Segment: Example Square Wave — concepts: odd symmetry; only sine terms; graphics: square wave plot; captions: "Only bn nonzero due to odd symmetry."
+
+[12:10] Segment: Convergence & Gibbs Phenomenon — concepts: convergence in mean; Gibbs phenomenon; graphics: step function with overshoot; captions: "Partial sums overshoot near discontinuities (~9%)."
+
+[15:30] Segment: Practical Notes — concepts: truncation; filtering; reconstruction; captions: "Truncating to N harmonics gives an approximation; filtering can reduce ringing."
+
+Key Concepts:
+- Fourier series: representation of periodic signals as weighted sums of sinusoids
+- Orthogonality: inner products vanish between different basis functions
+- Fundamental frequency (ω0 = 2π/T)
+- Coefficients (an, bn, c0) via inner products/integrals
+- Symmetry properties (even/odd) simplify which terms appear
+- Gibbs phenomenon near discontinuities
+- Truncation and reconstruction trade-offs
+
+Detected Graphics/Diagrams:
+- Unit circle diagram (basis intuition) @02:15
+- Square wave plot (odd symmetry) @10:20
+- Step function with overshoot illustrating Gibbs @12:10
+
+Extracted OCR/Captions (snippets):
+"ω0 = 2π/T"; "Projection onto orthogonal sinusoids"; "Gibbs ~9% overshoot"
+
