@@ -8,6 +8,11 @@
     "build": "tsc",
     "start": "node dist/index.js"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "@langchain/core": "^0.3.77",
+    "@langchain/google-genai": "^0.2.18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30"
+  }
 }
