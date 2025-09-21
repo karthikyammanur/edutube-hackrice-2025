@@ -1,8 +1,10 @@
 import { Firestore } from '@google-cloud/firestore';
 import type { VideoMetadata, VideoSegment } from '@edutube/types';
+import type { StudyMaterialsResponse } from './automatic-study-generator.js';
 
 const VIDEOS_COLLECTION = 'videos';
 const SEGMENTS_COLLECTION = 'video_segments';
+const STUDY_MATERIALS_COLLECTION = 'study_materials';
 
 let firestore: Firestore | null = null;
 function getFirestore() {
@@ -10,7 +12,8 @@ function getFirestore() {
     firestore = new Firestore({
       // Uses ADC by default. Ensure GOOGLE_CLOUD_PROJECT is set or credentials are configured.
       projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT,
-    });
+      ignoreUndefinedProperties: true,
+    } as any);
   }
   return firestore;
 }
@@ -52,11 +55,26 @@ export const Db = {
 
   async getVideoSegments(videoId: string): Promise<VideoSegment[]> {
     const db = getFirestore();
-    const qs = await db.collection(SEGMENTS_COLLECTION)
-      .where('videoId', '==', videoId)
-      .orderBy('startSec', 'asc')
-      .get();
-    return qs.docs.map((d) => d.data() as VideoSegment);
+    try {
+      const qs = await db.collection(SEGMENTS_COLLECTION)
+        .where('videoId', '==', videoId)
+        .orderBy('startSec', 'asc')
+        .get();
+      return qs.docs.map((d) => d.data() as VideoSegment);
+    } catch (error: any) {
+      // Handle Firestore index errors gracefully
+      if (error?.code === 9 || error?.message?.includes('FAILED_PRECONDITION') || error?.message?.includes('index')) {
+        console.warn('Firestore index missing, falling back to unordered query:', error.message);
+        // Fallback: Get segments without orderBy to avoid index requirement
+        const qs = await db.collection(SEGMENTS_COLLECTION)
+          .where('videoId', '==', videoId)
+          .get();
+        const segments = qs.docs.map((d) => d.data() as VideoSegment);
+        // Sort in memory as fallback
+        return segments.sort((a, b) => (a.startSec || 0) - (b.startSec || 0));
+      }
+      throw error;
+    }
   },
 
   async deleteVideoSegments(videoId: string): Promise<void> {
@@ -69,5 +87,43 @@ export const Db = {
     });
     
     await batch.commit();
+  },
+
+  /**
+   * Store study materials for automatic generation workflow
+   */
+  async storeStudyMaterials(videoId: string, materials: StudyMaterialsResponse): Promise<void> {
+    const db = getFirestore();
+    const ref = db.collection(STUDY_MATERIALS_COLLECTION).doc(videoId);
+    
+    const studyMaterialsDoc = {
+      videoId,
+      summary: materials.summary,
+      quiz: materials.quiz,
+      flashcards: materials.flashcards,
+      generatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    await ref.set(studyMaterialsDoc, { merge: true });
+  },
+
+  /**
+   * Retrieve study materials for a video
+   */
+  async getStudyMaterials(videoId: string): Promise<StudyMaterialsResponse | null> {
+    const db = getFirestore();
+    const snap = await db.collection(STUDY_MATERIALS_COLLECTION).doc(videoId).get();
+    
+    if (!snap.exists) return null;
+    
+    const data = snap.data();
+    if (!data) return null;
+    
+    return {
+      summary: data.summary || '',
+      quiz: data.quiz || [],
+      flashcards: data.flashcards || []
+    };
   },
 };

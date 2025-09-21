@@ -4,6 +4,9 @@ import { Db } from '../services/db.js';
 import { TwelveLabsRetriever } from '../services/twelvelabs.js';
 import { SSEService } from '../services/sse.js';
 import type { VideoSegment } from '@edutube/types';
+import { OutlineService } from '../services/outline.js';
+import { AutomaticStudyGenerator } from '../services/automatic-study-generator.js';
+import { SegmentValidator } from '../services/segment-validator.js';
 
 interface TwelveLabsWebhookPayload {
   event_type: 'video.embed.task.done' | 'video.embed.task.failed';
@@ -28,6 +31,79 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
   
   return createHash('sha256').update(expectedSignature).digest('hex') === 
          createHash('sha256').update(receivedSignature).digest('hex');
+}
+
+/**
+ * Automatic study materials generation function for webhook
+ */
+async function automaticGenerateStudyMaterials(videoId: string, taskId: string): Promise<void> {
+  console.log(`🎯 [WEBHOOK-AUTO] Starting automatic workflow for video ${videoId}, task ${taskId}`);
+  
+  try {
+    // Step 1: Get video segments from database
+    console.log('📝 [WEBHOOK-AUTO] Step 1: Loading video segments...');
+    const segments = await Db.getVideoSegments(videoId);
+    if (!segments || segments.length === 0) {
+      throw new Error(`No segments found for video ${videoId}`);
+    }
+    console.log(`✅ [WEBHOOK-AUTO] Loaded ${segments.length} video segments`);
+    
+    // Step 2: Get video metadata for duration
+    const video = await Db.getVideo(videoId);
+    if (!video || !video.durationSec) {
+      throw new Error(`Video metadata or duration missing for video ${videoId}`);
+    }
+    
+    // Step 3: Single Gemini API call to generate all materials from segments
+    console.log('🤖 [WEBHOOK-AUTO] Step 3: Generating study materials via single Gemini API call...');
+    const studyGenerator = new AutomaticStudyGenerator();
+    const studyMaterials = await studyGenerator.generateStudyMaterials(segments, video.durationSec);
+    console.log(`✅ [WEBHOOK-AUTO] Study materials generated: ${studyMaterials.quiz.length} quiz questions, ${studyMaterials.flashcards.length} flashcards`);
+    
+    // Step 3: Store materials in database for frontend access
+    console.log('💾 [WEBHOOK-AUTO] Step 3: Storing materials in database...');
+    await Db.storeStudyMaterials(videoId, studyMaterials);
+    console.log('✅ [WEBHOOK-AUTO] Materials stored successfully');
+    
+    // Step 4: Update video status to indicate materials are ready
+    const updatedVideo = await Db.getVideo(videoId);
+    if (updatedVideo) {
+      await Db.upsertVideo({
+        ...updatedVideo,
+        extra: {
+          ...updatedVideo.extra,
+          studyMaterialsReady: true,
+          studyMaterialsGeneratedAt: new Date().toISOString()
+        },
+        updatedAt: new Date().toISOString()
+      });
+    }
+    
+    console.log(`🎉 [WEBHOOK-AUTO] Automatic workflow completed successfully for video ${videoId}`);
+    
+  } catch (error) {
+    console.error(`❌ [WEBHOOK-AUTO] Automatic workflow failed for video ${videoId}:`, error);
+    
+    // Store error information
+    try {
+      const video = await Db.getVideo(videoId);
+      if (video) {
+        await Db.upsertVideo({
+          ...video,
+          extra: {
+            ...video.extra,
+            studyMaterialsError: (error as Error).message,
+            studyMaterialsErrorAt: new Date().toISOString()
+          },
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (dbError) {
+      console.error('❌ [WEBHOOK-AUTO] Failed to store error information:', dbError);
+    }
+    
+    throw error;
+  }
 }
 
 export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
@@ -91,21 +167,46 @@ export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
           let segmentCount = 0;
           
           if (embeddings?.videoEmbedding?.segments) {
-            segments = embeddings.videoEmbedding.segments
+            const videoDuration = video.durationSec || 0;
+            app.log.info(`Processing ${embeddings.videoEmbedding.segments.length} segments for video ${video.id} (duration: ${videoDuration}s)`);
+            
+            const rawSegments = embeddings.videoEmbedding.segments
               .filter((seg: any) => seg.startOffsetSec !== undefined && seg.endOffsetSec !== undefined)
-              .map((seg: any, index: number) => ({
-                id: `${video.id}_${index}`,
-                videoId: video.id,
-                startSec: seg.startOffsetSec!,
-                endSec: seg.endOffsetSec!,
-                text: seg.embeddingScope === 'visual-text' 
-                  ? `Visual content from ${seg.startOffsetSec}s to ${seg.endOffsetSec}s`
-                  : `Audio content from ${seg.startOffsetSec}s to ${seg.endOffsetSec}s`,
-                embeddingScope: seg.embeddingScope,
-                createdAt: now,
-              }));
+              .map((seg: any, index: number) => {
+                const validation = SegmentValidator.validateSegment(
+                  seg.startOffsetSec || 0,
+                  seg.endOffsetSec || 0,
+                  videoDuration
+                );
+                
+                if (!validation.isValid) {
+                  app.log.warn(`Invalid segment ${index} for video ${video.id}: ${validation.errors.join(', ')}`);
+                  return null;
+                }
+                
+                if (validation.errors.length > 0) {
+                  app.log.info(`Segment ${index} validation warnings: ${validation.errors.join(', ')}`);
+                }
+                
+                return {
+                  id: `${video.id}_${index}`,
+                  videoId: video.id,
+                  startSec: validation.validatedStart,
+                  endSec: validation.validatedEnd,
+                  text: seg.embeddingScope === 'visual-text' 
+                    ? `Visual content from ${SegmentValidator.formatTimestamp(validation.validatedStart)} to ${SegmentValidator.formatTimestamp(validation.validatedEnd)}`
+                    : `Audio content from ${SegmentValidator.formatTimestamp(validation.validatedStart)} to ${SegmentValidator.formatTimestamp(validation.validatedEnd)}`,
+                  embeddingScope: seg.embeddingScope,
+                  confidence: seg.confidence,
+                  createdAt: now,
+                };
+              })
+              .filter((seg: VideoSegment | null): seg is VideoSegment => seg !== null);
+            
+            segments = rawSegments;
             
             segmentCount = segments.length;
+            app.log.info(`Segment validation completed: ${segmentCount} valid segments after bounds checking and clamping`);
             
             // Persist segments to Firestore
             if (segments.length > 0) {
@@ -138,6 +239,25 @@ export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
               message: 'Video processing completed successfully'
             }
           });
+
+          // Fire-and-forget: generate outline (chapters + concepts + caption + key concepts)
+          try {
+            OutlineService.generateAndSave(video.id).catch((e) => app.log.error(e, 'Outline generation failed'));
+          } catch (e) {
+            app.log.error(e, 'Failed to kick off outline generation');
+          }
+
+          // AUTOMATIC STUDY MATERIALS GENERATION - NEW REQUIREMENT
+          try {
+            console.log(`🚀 [WEBHOOK-AUTO] Starting automatic study materials generation for video ${video.id}`);
+            automaticGenerateStudyMaterials(video.id, payload.task_id).catch((e) => {
+              console.error(`❌ [WEBHOOK-AUTO] Automatic study generation failed for video ${video.id}:`, e);
+              app.log.error(e, 'Automatic study generation failed');
+            });
+          } catch (e) {
+            console.error(`❌ [WEBHOOK-AUTO] Failed to kick off automatic study generation for video ${video.id}:`, e);
+            app.log.error(e, 'Failed to kick off automatic study generation');
+          }
           
         } catch (error) {
           app.log.error(error, `Failed to process completed video ${video.id}`);

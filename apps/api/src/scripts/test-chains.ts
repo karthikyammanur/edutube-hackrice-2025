@@ -3,6 +3,12 @@ import { generateFlashcards, FlashcardItem } from "../chains/flashcards-chain";
 import { generateQuiz, QuizQuestion } from "../chains/quiz-chain";
 import fs from "node:fs";
 import path from "node:path";
+import { config as dotenvConfig } from "dotenv";
+
+// Load env from outer project root, monorepo root, and local API .env
+dotenvConfig({ path: path.resolve(process.cwd(), "../../../.env") });
+dotenvConfig({ path: path.resolve(process.cwd(), "../../.env") });
+dotenvConfig({ path: path.resolve(process.cwd(), ".env") });
 
 interface CliArgs {
   file?: string;

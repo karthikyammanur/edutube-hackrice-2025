@@ -1,11 +1,17 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import './utils/themeInit';
 import Landing from './Landing';
 import Upload from './Upload';
 import Flashcards from './Flashcards';
 import Summary from './Summary';
 import Quiz from './Quiz';
+import { VideoProvider } from './hooks/use-video';
+import { StudyMaterialsProvider } from './hooks/use-study-materials';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ThemeToggle } from './components/ThemeToggle';
+import { initializeTheme } from './utils/ThemeManager';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -22,25 +28,44 @@ function AppRouter(): JSX.Element {
 		return () => window.removeEventListener('hashchange', handler);
 	}, []);
 
-	if (hash === '#upload') {
+	// Parse hash to determine route
+	const route = hash.split('?')[0] || '#';
+	
+	console.log('🛣️ [ROUTER-FRONTEND] Current route:', route, 'Hash:', hash);
+	
+	if (route === '#upload') {
 		return <Upload />;
 	}
-	if (hash === '#flashcards') {
+	if (route === '#flashcards') {
 		return <Flashcards />;
 	}
-	if (hash === '#summary') {
+	if (route === '#summary') {
 		return <Summary />;
 	}
-	if (hash === '#quiz') {
+	if (route === '#quiz') {
 		return <Quiz />;
 	}
 	return <Landing />;
 }
 
-root.render(
-	<React.StrictMode>
-		<AppRouter />
-	</React.StrictMode>
-);
+function App(): JSX.Element {
+	// Initialize theme manager on app mount
+	React.useEffect(() => {
+		initializeTheme();
+	}, []);
+
+	return (
+		<ErrorBoundary>
+			<VideoProvider>
+				<StudyMaterialsProvider>
+					<ThemeToggle />
+					<AppRouter />
+				</StudyMaterialsProvider>
+			</VideoProvider>
+		</ErrorBoundary>
+	);
+}
+
+root.render(<App />);
 
 

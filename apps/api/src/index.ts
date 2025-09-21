@@ -2,10 +2,11 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
-// import { registerVideoRoutes } from './routes/videos.js';
-// import { registerSearchRoutes } from './routes/search.js';
+import { registerVideoRoutes } from './routes/videos.js';
+import { registerSearchRoutes } from './routes/search.js';
+import { registerStudyRoutes } from './routes/study.js';
 // import { registerExportRoutes } from './routes/export.js';
-// import { registerTwelveLabsWebhookRoutes } from './routes/webhooks.twelvelabs.js';
+import { registerTwelveLabsWebhookRoutes } from './routes/webhooks.twelvelabs.js';
 // import { registerNotesRoutes } from './routes/notes.js';
 // import { registerSSERoutes } from './services/sse.js';
 
@@ -18,14 +19,17 @@ async function buildServer() {
   await app.register(cors, {
     origin: (_origin, cb) => cb(null, true),
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
   app.get('/health', async () => ({ ok: true }));
 
-  // await registerVideoRoutes(app);
-  // await registerSearchRoutes(app);
+  await registerVideoRoutes(app);
+  await registerSearchRoutes(app);
+  await registerStudyRoutes(app);
   // await registerExportRoutes(app);
-  // await registerTwelveLabsWebhookRoutes(app);
+  await registerTwelveLabsWebhookRoutes(app);
   // await registerNotesRoutes(app);
   // await registerSSERoutes(app);
 
@@ -50,7 +54,8 @@ async function main() {
     console.log('Server built successfully, starting to listen...');
     
     await app.listen({ host: HOST, port: PORT });
-    app.log.info(`API listening on http://${HOST}:${PORT}`);
+    app.log.info(`API listening on 
+      http://${HOST}:${PORT}`);
     
     console.log('Server listen completed, setting up heartbeat...');
     

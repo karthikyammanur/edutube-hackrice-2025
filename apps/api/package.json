@@ -8,7 +8,20 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test:chains": "tsx src/scripts/test-chains.ts"
+    "test:chains": "tsx src/scripts/test-chains.ts",
+    "test:study": "tsx src/scripts/study-e2e.ts",
+    "test:study-direct": "tsx src/scripts/study-direct.ts",
+    "test:tl-testvideo-smart": "tsx src/scripts/search-testvideo-smart.ts",
+    "test:tl-ping": "tsx src/scripts/tl-ping.ts",
+    "test:tl-minimal": "tsx src/scripts/tl-minimal-test.ts",
+    "test:video-study": "tsx src/scripts/video-to-study-materials.ts",
+    "test:video-study-simple": "tsx src/scripts/video-study-simple.ts",
+    "test:tl-to-index": "tsx src/scripts/tl-to-index.ts",
+    "test:tl-to-index-enriched": "tsx src/scripts/tl-to-index-enriched.ts",
+    "test:tl-conversation": "tsx src/scripts/tl-conversation-test.ts",
+    "test:tl-transcript": "tsx src/scripts/tl-transcript.ts",
+    "test:tl-summarize": "tsx src/scripts/tl-summarize.ts",
+    "test:tl-outline": "tsx src/scripts/tl-outline.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
@@ -16,10 +29,12 @@
     "@google-cloud/storage": "^7.13.0",
     "@langchain/core": "^0.3.77",
     "@langchain/google-genai": "^0.2.18",
+    "@types/video.js": "^7.3.58",
     "dotenv": "^17.2.2",
     "fastify": "^4.26.2",
     "langchain": "^0.2.14",
-    "twelvelabs-js": "^1.0.2"
+    "twelvelabs-js": "^1.0.2",
+    "video.js": "^8.23.4"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
