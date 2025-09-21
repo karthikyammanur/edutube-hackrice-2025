@@ -13,7 +13,7 @@ export class GeminiService {
 
   constructor(params?: { model?: string; temperature?: number }) {
     // Store configuration but initialize client lazily
-    this.modelName = params?.model ?? 'gemini-1.5-pro';
+    this.modelName = params?.model ?? 'gemini-1.5-flash';
     this.temperature = params?.temperature ?? 0.2;
   }
 
