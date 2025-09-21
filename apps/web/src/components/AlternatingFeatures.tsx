@@ -31,10 +31,18 @@ const FEATURES: Feature[] = [
 ];
 
 export default function AlternatingFeatures(): JSX.Element {
+  const DEMO_SOURCES: Array<{ src: string; poster?: string }> = [
+    { src: '/assets/demos/uploaddemo.mov', poster: '/assets/demos/uploaddemo.jpg ' },
+    { src: '/assets/demos/notesdemo.mov', poster: '/assets/demos/summarydemo.jpg' },
+    { src: '/assets/demos/quizdemo.mov', poster: '/assets/demos/quiz.jpg' },
+    { src: '/assets/demos/flashcardsdemo.mov', poster: '/assets/demos/flashcards.jpg' },
+  ];
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20 space-y-12 sm:space-y-16">
       {FEATURES.map((f, idx) => {
         const isEven = idx % 2 === 0;
+        const media = DEMO_SOURCES[idx];
         return (
           <div key={f.title} className={`grid items-center gap-8 sm:gap-10 lg:gap-12 ${isEven ? 'lg:grid-cols-[1.1fr_1fr]' : 'lg:grid-cols-[1fr_1.1fr]'} lg:grid-cols-2`}>
             {/* Text */}
@@ -47,8 +55,18 @@ export default function AlternatingFeatures(): JSX.Element {
             </FadeIn>
             {/* Media placeholder */}
             <FadeIn once y={10} className={`${isEven ? '' : 'lg:order-1'}`}>
-              <div className="aspect-video w-full rounded-2xl border border-border bg-surface grid place-items-center text-subtext">
-                <span>Demo clip coming soon</span>
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-border bg-black">
+                <video
+                  key={media?.src || idx}
+                  src={media?.src}
+                  poster={media?.poster}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
               </div>
             </FadeIn>
           </div>
