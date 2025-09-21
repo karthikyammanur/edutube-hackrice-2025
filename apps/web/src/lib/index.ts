@@ -1,5 +1,5 @@
 export async function apiFetch(path: string, opts: RequestInit = {}) {
-  const base = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+  const base = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:3000';
   const res = await fetch(`${base}${path}`, {
     ...opts,
     headers: {
@@ -12,7 +12,7 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
 }
 
 export async function apiFetchRaw(path: string, opts: RequestInit = {}) {
-  const base = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+  const base = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:3000';
   const res = await fetch(`${base}${path}`, opts);
   if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
   return res;

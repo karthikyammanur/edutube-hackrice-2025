@@ -1,9 +1,9 @@
+/* Import Playfair Display for select hero words */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Playfair Display for select hero words */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap');
 
 /* Focus styles override to ensure good visibility */
 :root {

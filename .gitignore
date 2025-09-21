@@ -56,4 +56,5 @@ Thumbs.db
 # env
 .env
 
+#api-key-cloud
 hackrice-api-key.json
