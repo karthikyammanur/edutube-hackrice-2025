@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { Gcs } from '../services/storage.js';
 import { Db } from '../services/db.js';
 import { TwelveLabsRetriever } from '../services/twelvelabs.js';
+import { StudyService } from '../services/study.js';
 import { randomUUID } from 'crypto';
 import type { VideoMetadata } from '@edutube/types';
 
@@ -267,6 +268,14 @@ export async function registerVideoRoutes(app: FastifyInstance) {
             // Continue with response even if DB save fails
           }
           
+          // Fire-and-forget background generation of study materials
+          try {
+            // Query-less mode uses coverage queries
+            StudyService.generateAll(id, { maxHits: 12 }).catch((e) => app.log.error(e, 'Study generation failed'));
+          } catch (e) {
+            app.log.error(e, 'Failed to kick off study generation');
+          }
+
           return reply.send({
             ...updatedVideo,
             totalSegments: segments.length,

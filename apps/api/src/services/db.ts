@@ -10,7 +10,8 @@ function getFirestore() {
     firestore = new Firestore({
       // Uses ADC by default. Ensure GOOGLE_CLOUD_PROJECT is set or credentials are configured.
       projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT,
-    });
+      ignoreUndefinedProperties: true,
+    } as any);
   }
   return firestore;
 }

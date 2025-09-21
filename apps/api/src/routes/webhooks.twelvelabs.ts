@@ -4,6 +4,7 @@ import { Db } from '../services/db.js';
 import { TwelveLabsRetriever } from '../services/twelvelabs.js';
 import { SSEService } from '../services/sse.js';
 import type { VideoSegment } from '@edutube/types';
+import { OutlineService } from '../services/outline.js';
 
 interface TwelveLabsWebhookPayload {
   event_type: 'video.embed.task.done' | 'video.embed.task.failed';
@@ -138,6 +139,13 @@ export async function registerTwelveLabsWebhookRoutes(app: FastifyInstance) {
               message: 'Video processing completed successfully'
             }
           });
+
+          // Fire-and-forget: generate outline (chapters + concepts + caption + key concepts)
+          try {
+            OutlineService.generateAndSave(video.id).catch((e) => app.log.error(e, 'Outline generation failed'));
+          } catch (e) {
+            app.log.error(e, 'Failed to kick off outline generation');
+          }
           
         } catch (error) {
           app.log.error(error, `Failed to process completed video ${video.id}`);

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AnimatedPlusIcon } from './components/animate-ui/icons/plus';
 import { Files, FolderItem, FolderTrigger, FolderContent, SubFiles, FileItem } from './components/animate-ui/components/radix/files';
+import { apiFetch, apiFetchRaw } from './lib';
 
 function SectionCard(props: { children: React.ReactNode; className?: string; ariaLabel?: string }): JSX.Element {
 	return (
@@ -15,6 +16,40 @@ function SectionCard(props: { children: React.ReactNode; className?: string; ari
 }
 
 export default function Upload(): JSX.Element {
+    const [isUploading, setIsUploading] = useState(false);
+    const [status, setStatus] = useState<string>('');
+    const [lastVideoId, setLastVideoId] = useState<string>('');
+
+    async function handleFileSelected(file: File) {
+        try {
+            setIsUploading(true);
+            setStatus('Requesting signed upload URL...');
+            // 1) Ask API for signed upload URL + pre-create video metadata
+            const { videoId, url, objectName } = await apiFetch('/videos/upload-url', {
+                method: 'POST',
+                body: JSON.stringify({ fileName: file.name, contentType: file.type || 'video/mp4' })
+            });
+            setLastVideoId(videoId);
+
+            // 2) PUT the file to GCS signed URL
+            setStatus('Uploading to cloud storage...');
+            await apiFetchRaw('/videos/upload-url', { method: 'HEAD' }).catch(() => {}); // warmup
+            await fetch(url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'video/mp4' } });
+
+            // 3) Notify API to trigger TwelveLabs indexing
+            setStatus('Starting TwelveLabs indexing...');
+            await apiFetch('/videos', {
+                method: 'POST',
+                body: JSON.stringify({ id: videoId, title: file.name })
+            });
+
+            setStatus('Upload complete. Indexing started. This may take a few minutes.');
+        } catch (err: any) {
+            setStatus(`Error: ${err?.message || String(err)}`);
+        } finally {
+            setIsUploading(false);
+        }
+    }
 	return (
 		<div className="min-h-dvh bg-background">
 			<header className="sticky top-0 z-40 border-b border-border/80 bg-background">
@@ -61,12 +96,25 @@ export default function Upload(): JSX.Element {
 							<p className="text-subtext text-sm mt-1">MP4, WebM up to 1GB</p>
 							<div className="mt-6">
 								<label className="inline-flex items-center px-5 py-3 rounded-xl bg-text text-background font-medium hover:bg-primaryHover transition cursor-pointer focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-text">
-									<input type="file" className="sr-only" aria-label="Browse files" />
+                                    <input
+                                        type="file"
+                                        className="sr-only"
+                                        aria-label="Browse files"
+                                        accept="video/*"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleFileSelected(f);
+                                        }}
+                                        disabled={isUploading}
+                                    />
 									<span>Browse Files</span>
 								</label>
 							</div>
                         </motion.div>
                         <p className="mt-6 text-subtext text-sm">After upload, ask AI questions, get summaries, quizzes and flash cards — all without leaving this screen.</p>
+                        {status && (
+                            <p className="mt-4 text-sm text-slate-600" role="status">{status}{lastVideoId ? ` (Video ID: ${lastVideoId})` : ''}</p>
+                        )}
 					</SectionCard>
 				</div>
 			</main>
