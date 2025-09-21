@@ -108,7 +108,7 @@ export const VideoPlayer = React.forwardRef<VideoPlayerRef, VideoPlayerProps>((p
     fetchStreamUrl();
   }, [videoId]);
 
-  // Initialize Video.js player
+  // Initialize Video.js player (only when streamUrl changes)
   useEffect(() => {
     if (!videoRef.current || !streamUrl || playerRef.current) return;
 
@@ -153,12 +153,6 @@ export const VideoPlayer = React.forwardRef<VideoPlayerRef, VideoPlayerProps>((p
     player.ready(() => {
       console.log('✅ [VIDEO-PLAYER] Player ready');
       onReady?.(player);
-      
-      // Seek to start time if provided (deep link support)
-      if (startTime && startTime > 0) {
-        console.log(`⏰ [VIDEO-PLAYER] Seeking to start time: ${startTime}s`);
-        player.currentTime(startTime);
-      }
     });
 
     player.on('timeupdate', () => {
@@ -199,7 +193,27 @@ export const VideoPlayer = React.forwardRef<VideoPlayerRef, VideoPlayerProps>((p
         playerRef.current = null;
       }
     };
-  }, [streamUrl, autoplay, controls, responsive, fluid, aspectRatio, muted, playbackRates, onReady, onTimeUpdate, onSeek, startTime]);
+  }, [streamUrl]); // Removed all other dependencies that were causing reinitializations
+
+  // Handle startTime separately to avoid reinitializing the player
+  useEffect(() => {
+    if (playerRef.current && startTime && startTime > 0) {
+      const player = playerRef.current;
+      
+      const handleReady = () => {
+        console.log(`⏰ [VIDEO-PLAYER] Seeking to start time: ${startTime}s`);
+        player.currentTime(startTime);
+      };
+
+      if (player.readyState() >= 1) {
+        // Player is already ready
+        handleReady();
+      } else {
+        // Wait for player to be ready
+        player.ready(handleReady);
+      }
+    }
+  }, [startTime]); // Only re-run when startTime changes
 
   // Cleanup on unmount
   useEffect(() => {

@@ -34,19 +34,33 @@ export default function Upload(): JSX.Element {
     const videoPlayerRef = React.useRef<VideoPlayerRef>(null);
     const { state: deepLinkState, updateUrl } = useDeepLink();
     
+    // Memoize the start time to prevent unnecessary re-renders
+    const startTime = React.useMemo(() => {
+        return deepLinkState.timestamp || 0;
+    }, [deepLinkState.timestamp]);
+    
     // Parse timestamp from URL hash using DeepLinkManager
     const parseTimestampFromHash = (): number => {
-        return deepLinkState.timestamp || 0;
+        return startTime;
     };
     
-    // Update URL with current timestamp using DeepLinkManager
-    const updateUrlWithTimestamp = (time: number) => {
+    // Memoize callback functions to prevent re-renders
+    const handleTimeUpdate = React.useCallback((time: number) => {
+        setCurrentVideoTime(time);
+    }, []);
+    
+    const handleSeek = React.useCallback((time: number) => {
         updateUrl({
             videoId: lastVideoId,
             timestamp: time,
             page: 'upload'
         });
-    };
+        setCurrentVideoTime(time);
+    }, [lastVideoId, updateUrl]);
+    
+    const handlePlayerReady = React.useCallback((player: any) => {
+        console.log('🎬 [UPLOAD] Video player ready');
+    }, []);
     
     // Function to get video duration from file
     const getVideoDuration = (file: File): Promise<number> => {
@@ -80,7 +94,7 @@ export default function Upload(): JSX.Element {
     // Handle deep linking - listen for hash changes
     React.useEffect(() => {
         const handleHashChange = () => {
-            const timestamp = parseTimestampFromHash();
+            const timestamp = startTime;
             if (timestamp > 0 && videoPlayerRef.current) {
                 console.log(`🔗 [DEEP-LINK] Seeking to timestamp: ${timestamp}s`);
                 videoPlayerRef.current.seekTo(timestamp);
@@ -89,7 +103,7 @@ export default function Upload(): JSX.Element {
         
         window.addEventListener('hashchange', handleHashChange);
         return () => window.removeEventListener('hashchange', handleHashChange);
-    }, [videoReady]);
+    }, [videoReady, startTime]);
 
     async function checkVideoStatus(videoId: string) {
         try {
@@ -330,17 +344,10 @@ export default function Upload(): JSX.Element {
                                     <VideoPlayer
                                         ref={videoPlayerRef}
                                         videoId={lastVideoId}
-                                        startTime={parseTimestampFromHash()}
-                                        onTimeUpdate={(time) => {
-                                            setCurrentVideoTime(time);
-                                        }}
-                                        onSeek={(time) => {
-                                            updateUrlWithTimestamp(time);
-                                            setCurrentVideoTime(time);
-                                        }}
-                                        onReady={(player) => {
-                                            console.log('🎬 [UPLOAD] Video player ready');
-                                        }}
+                                        startTime={startTime}
+                                        onTimeUpdate={handleTimeUpdate}
+                                        onSeek={handleSeek}
+                                        onReady={handlePlayerReady}
                                         className="rounded-lg border"
                                         controls={true}
                                         fluid={true}
