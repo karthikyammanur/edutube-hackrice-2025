@@ -105,30 +105,101 @@ export class OutlineService {
     const transcript = gen ? await getTranscript(client, videoId) : [];
 
     const segments: OutlineSegment[] = [];
-    for (const ch of chapters) {
-      const startSec: number = Number(ch.start || ch.startSec || 0);
-      const endSec: number = Number(ch.end || ch.endSec || startSec);
-      const title: string = String(ch.chapterTitle || ch.title || 'Chapter');
+    
+    // OPTIMIZATION: Batch process chapters to reduce API calls
+    if (gen && chapters.length > 0) {
+      try {
+        // Build all chapter data first
+        const chapterData = chapters.map(ch => ({
+          startSec: Number(ch.start || ch.startSec || 0),
+          endSec: Number(ch.end || ch.endSec || 0),
+          title: String(ch.chapterTitle || ch.title || 'Chapter'),
+          windowText: transcript.length ? extractWindowText(transcript, 
+            Number(ch.start || ch.startSec || 0),
+            Number(ch.end || ch.endSec || 0)
+          ) : overall.slice(0, 1000) // Limit fallback text
+        }));
 
-      let concepts: string[] = [];
-      let caption = '';
-      if (gen) {
-        try {
-          const windowText = transcript.length ? extractWindowText(transcript, startSec, endSec) : overall;
-          const out = await llmConceptsAndCaption(gen, title, windowText, startSec, endSec);
-          concepts = out.concepts;
-          caption = out.caption;
-        } catch (_) {
-          // leave empty
-        }
+        // Batch process: Generate concepts and captions for ALL chapters in single API call
+        console.log(`🚀 [OUTLINE] Batching ${chapterData.length} chapters into single API call`);
+        const batchStart = Date.now();
+        
+        const batchPrompt = `
+Analyze these lecture chapters and generate concepts and captions for each.
+
+For each chapter, provide:
+1. concepts: 2-4 concise key terms/concepts
+2. caption: one descriptive sentence (10-18 words)
+
+Return JSON array with same order as input:
+[
+  {"concepts": ["term1", "term2"], "caption": "descriptive sentence"},
+  {"concepts": ["term3", "term4"], "caption": "another descriptive sentence"}
+]
+
+Chapters:
+${chapterData.map((ch, i) => 
+  `Chapter ${i + 1}: ${ch.title} (${toTs(ch.startSec)}-${toTs(ch.endSec)})\n${ch.windowText.slice(0, 300)}...`
+).join('\n\n')}
+        `;
+
+        const model = gen.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const resp = await model.generateContent(batchPrompt);
+        const raw = await resp.response.text();
+        
+        // Parse batched response
+        const body = raw.match(/\[[\s\S]*\]/) 
+          ? raw.match(/\[[\s\S]*\]/)![0]
+          : raw.replace(/```json|```/g, '').trim();
+        
+        const batchResults = JSON.parse(body);
+        console.log(`✅ [OUTLINE] Batch processing completed in ${Date.now() - batchStart}ms`);
+        
+        // Apply results to segments
+        chapterData.forEach((ch, i) => {
+          const result = batchResults[i] || { concepts: [], caption: '' };
+          segments.push({
+            startSec: ch.startSec,
+            endSec: ch.endSec,
+            title: ch.title,
+            concepts: Array.isArray(result.concepts) ? result.concepts.slice(0, 4) : [],
+            caption: String(result.caption || '').trim()
+          });
+        });
+
+      } catch (error) {
+        console.warn(`⚠️ [OUTLINE] Batch processing failed, using fallback:`, error);
+        // Fallback: process without AI enhancement
+        chapters.forEach(ch => {
+          segments.push({
+            startSec: Number(ch.start || ch.startSec || 0),
+            endSec: Number(ch.end || ch.endSec || 0),
+            title: String(ch.chapterTitle || ch.title || 'Chapter'),
+            concepts: [],
+            caption: ''
+          });
+        });
       }
-
-      segments.push({ startSec, endSec, title, concepts, caption });
+    } else {
+      // No Gemini available - basic segments without AI enhancement
+      chapters.forEach(ch => {
+        segments.push({
+          startSec: Number(ch.start || ch.startSec || 0),
+          endSec: Number(ch.end || ch.endSec || 0), 
+          title: String(ch.chapterTitle || ch.title || 'Chapter'),
+          concepts: [],
+          caption: ''
+        });
+      });
     }
 
     let keyConcepts: string[] = [];
-    if (gen) {
-      try { keyConcepts = await extractKeyConcepts(gen, overall); } catch (_) {}
+    if (gen && overall.trim()) {
+      try { 
+        keyConcepts = await extractKeyConcepts(gen, overall); 
+      } catch (error) {
+        console.warn(`⚠️ [OUTLINE] Key concepts extraction failed:`, error);
+      }
     }
 
     return {
