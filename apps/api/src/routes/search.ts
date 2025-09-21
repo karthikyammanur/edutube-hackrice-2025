@@ -85,28 +85,36 @@ export async function registerSearchRoutes(app: FastifyInstance) {
       }, 'Video search performed');
 
       // Optional: Generate AI summary of search results
+      // OPTIMIZATION: Only generate summary if specifically requested AND sufficient content
       let summary = null;
-      if (summarize && searchHits.length > 0) {
+      if (summarize && searchHits.length > 2) {
         try {
-          let gemini;
-          try {
-            gemini = new GeminiService();
-          } catch (error) {
-            if ((error as Error).message.includes('GOOGLE_API_KEY')) {
-              app.log.warn('Gemini API key not configured, skipping summary generation');
-              throw new Error('Gemini API key not configured');
+          // Rate limit: Only allow summary if reasonable amount of content
+          const totalContent = searchHits.reduce((sum, hit) => sum + (hit.text?.length || 0), 0);
+          if (totalContent > 200) { // Only summarize substantial content
+            let gemini;
+            try {
+              gemini = new GeminiService();
+            } catch (error) {
+              if ((error as Error).message.includes('GOOGLE_API_KEY')) {
+                app.log.warn('Gemini API key not configured, skipping summary generation');
+                throw new Error('Gemini API key not configured');
+              }
+              throw error;
             }
-            throw error;
+            
+            const context = searchHits
+              .slice(0, 5) // Limit to top 5 results to reduce API usage
+              .map((hit, i) => `# Result ${i + 1} (${hit.startSec}-${hit.endSec}s)\n${hit.text}`)
+              .join('\n\n');
+            
+            summary = await gemini.summarize(
+              context, 
+              `Create concise study notes from these "${query}" video segments. Focus on key concepts and timing.`
+            );
+          } else {
+            app.log.info('Skipping summary - insufficient content for meaningful summarization');
           }
-          
-          const context = searchHits
-            .map((hit, i) => `# Result ${i + 1} (${hit.startSec}-${hit.endSec}s)\n${hit.text}`)
-            .join('\n\n');
-          
-          summary = await gemini.summarize(
-            context, 
-            `Create study notes from these "${query}" video segments. Focus on key concepts and timing.`
-          );
         } catch (error) {
           app.log.warn(error, 'Failed to generate search summary');
         }
