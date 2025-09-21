@@ -30,7 +30,7 @@ type FilesProps = FilesPrimitiveProps;
 function Files({ className, children, ...props }: FilesProps) {
   return (
     <FilesPrimitive className={cn('p-2 w-full', className)} {...props}>
-      <FilesHighlightPrimitive className="bg-text/10 rounded-lg pointer-events-none">
+      <FilesHighlightPrimitive className="rounded-lg pointer-events-none" style={{backgroundColor: 'var(--bg-hover)'}}>
         {children}
       </FilesHighlightPrimitive>
     </FilesPrimitive>
@@ -105,7 +105,8 @@ type FolderContentProps = FolderContentPrimitiveProps;
 
 function FolderContent(props: FolderContentProps) {
   return (
-    <div className="relative ml-6 before:absolute before:-left-2 before:inset-y-0 before:w-px before:h-full before:bg-border">
+    <div className="relative ml-6">
+      <div className="absolute -left-2 inset-y-0 w-px h-full" style={{backgroundColor: 'var(--border-primary)'}} />
       <FolderContentPrimitive {...props} />
     </div>
   );

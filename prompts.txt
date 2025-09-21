@@ -1,0 +1,377 @@
+COPILOT PROMPT:
+You are fixing critical bugs in the Edutube application. These are HIGH PRIORITY issues that must be resolved immediately with zero tolerance for errors.
+CRITICAL FIXES - ZERO PLACEHOLDER DATA ALLOWED
+1. ELIMINATE ALL PLACEHOLDER DATA - RESTORE REAL-TIME GENERATION
+REMOVE these placeholder patterns completely:
+javascript// DELETE any code that looks like this:
+const placeholderQuiz = [
+  { question: "Sample question...", options: [...] }
+];
+
+const placeholderSummary = "This is a sample summary...";
+
+const placeholderFlashcards = [
+  { question: "Sample question", answer: "Sample answer" }
+];
+
+// DELETE any hardcoded/static content arrays
+// DELETE any fallback placeholder content
+// DELETE any mock data responses
+RESTORE real-time generation flow:
+javascript// Backend: Ensure this exact flow works
+async function processVideoUpload(videoId) {
+  try {
+    // 1. Wait for TwelveLabs processing
+    await waitForTwelveLabsProcessing(videoId);
+    
+    // 2. Get segments (NOT transcript)
+    const segments = await getVideoSegments(videoId);
+    
+    if (!segments || segments.length === 0) {
+      throw new Error('No segments available from TwelveLabs');
+    }
+    
+    // 3. Generate content using segments
+    const content = await generateContentFromSegments(videoId, segments);
+    
+    // 4. Store real content (never placeholders)
+    await storeGeneratedContent(videoId, content);
+    
+    return content;
+    
+  } catch (error) {
+    console.error('Content generation failed:', error);
+    // Return error state, NOT placeholder data
+    throw error;
+  }
+}
+
+async function generateContentFromSegments(videoId, segments) {
+  const video = await getVideoById(videoId);
+  const segmentText = segments.map(s => s.text).join(' ');
+  
+  if (!segmentText.trim()) {
+    throw new Error('No text content available from segments');
+  }
+  
+  // Call Gemini with real segment data
+  const geminiResponse = await callGeminiAPI(segmentText, video.duration_sec);
+  
+  // Parse and validate response
+  const parsedContent = JSON.parse(geminiResponse);
+  
+  // Validate that content is real, not placeholder
+  validateGeneratedContent(parsedContent);
+  
+  return parsedContent;
+}
+
+function validateGeneratedContent(content) {
+  // Reject placeholder patterns
+  const placeholderPatterns = [
+    /sample|placeholder|example|lorem ipsum|test|demo/i,
+    /\[.*\]/, // Bracket placeholders like [Question 1]
+    /\.\.\./  // Ellipsis placeholders
+  ];
+  
+  // Check summary
+  if (!content.summary || content.summary.trim().length < 50) {
+    throw new Error('Generated summary too short or empty');
+  }
+  
+  placeholderPatterns.forEach(pattern => {
+    if (pattern.test(content.summary)) {
+      throw new Error('Placeholder content detected in summary');
+    }
+  });
+  
+  // Check quiz
+  if (!content.quiz || content.quiz.length === 0) {
+    throw new Error('No quiz questions generated');
+  }
+  
+  content.quiz.forEach((q, index) => {
+    if (!q.question || !q.options || q.options.length !== 4) {
+      throw new Error(`Quiz question ${index + 1} malformed`);
+    }
+    
+    placeholderPatterns.forEach(pattern => {
+      if (pattern.test(q.question) || q.options.some(opt => pattern.test(opt))) {
+        throw new Error(`Placeholder content detected in quiz question ${index + 1}`);
+      }
+    });
+  });
+  
+  // Check flashcards
+  if (!content.flashcards || content.flashcards.length === 0) {
+    throw new Error('No flashcards generated');
+  }
+  
+  content.flashcards.forEach((card, index) => {
+    if (!card.question || !card.answer) {
+      throw new Error(`Flashcard ${index + 1} missing question or answer`);
+    }
+    
+    placeholderPatterns.forEach(pattern => {
+      if (pattern.test(card.question) || pattern.test(card.answer)) {
+        throw new Error(`Placeholder content detected in flashcard ${index + 1}`);
+      }
+    });
+  });
+}
+2. FIX VIDEO PLAYBACK BUG - RESOLVE PAUSE/UNPAUSE ISSUE
+Identify and fix the pause conflict:
+javascript// Frontend: Fix Video.js player setup
+class VideoPlayerManager {
+  constructor(videoId) {
+    this.videoId = videoId;
+    this.player = null;
+    this.isInitialized = false;
+    this.pendingSeek = null;
+    this.init();
+  }
+  
+  async init() {
+    try {
+      const response = await fetch(`/videos/${this.videoId}/stream`);
+      const data = await response.json();
+      
+      this.duration = data.duration_sec;
+      
+      // CRITICAL: Initialize player without conflicting event handlers
+      this.player = videojs('main-video-player', {
+        fluid: true,
+        responsive: true,
+        playsinline: true,
+        sources: [{
+          src: data.streamUrl,
+          type: 'video/mp4'
+        }]
+      });
+      
+      // CRITICAL: Wait for player to be fully ready
+      this.player.ready(() => {
+        this.isInitialized = true;
+        
+        // Handle any pending seek requests
+        if (this.pendingSeek !== null) {
+          this.seekToTime(this.pendingSeek);
+          this.pendingSeek = null;
+        }
+        
+        // Remove any conflicting event listeners that might cause pause
+        this.cleanupConflictingListeners();
+      });
+      
+      // CRITICAL: Handle seeking without causing pause conflicts
+      this.player.on('seeked', () => {
+        // Don't auto-pause after seeking
+        // Let user control play/pause state
+      });
+      
+    } catch (error) {
+      console.error('Video player initialization failed:', error);
+    }
+  }
+  
+  cleanupConflictingListeners() {
+    // Remove any duplicate or conflicting event listeners
+    this.player.off('loadedmetadata');
+    this.player.off('canplay');
+    
+    // Ensure no multiple play/pause handlers
+    const videoElement = this.player.el().querySelector('video');
+    if (videoElement) {
+      // Clone element to remove all listeners
+      const newElement = videoElement.cloneNode(true);
+      videoElement.parentNode.replaceChild(newElement, videoElement);
+    }
+  }
+  
+  seekToTime(seconds) {
+    if (!this.isInitialized || !this.duration) {
+      // Queue seek for when player is ready
+      this.pendingSeek = seconds;
+      return;
+    }
+    
+    const clampedTime = Math.max(0, Math.min(seconds, this.duration));
+    
+    // CRITICAL: Prevent pause during seeking
+    const wasPlaying = !this.player.paused();
+    
+    this.player.currentTime(clampedTime);
+    
+    // CRITICAL: Restore play state if it was playing
+    if (wasPlaying) {
+      // Small delay to ensure seeking completes
+      setTimeout(() => {
+        if (!this.player.paused()) {
+          this.player.play();
+        }
+      }, 100);
+    }
+    
+    // Update URL without reload
+    window.history.replaceState(null, null, `#t=${Math.floor(clampedTime)}`);
+  }
+  
+  // CRITICAL: Clean play method
+  play() {
+    if (this.isInitialized) {
+      return this.player.play();
+    }
+  }
+  
+  // CRITICAL: Clean pause method  
+  pause() {
+    if (this.isInitialized) {
+      return this.player.pause();
+    }
+  }
+}
+
+// CRITICAL: Remove any global video event listeners that might conflict
+document.addEventListener('DOMContentLoaded', () => {
+  // Remove any existing video element listeners
+  const existingVideos = document.querySelectorAll('video');
+  existingVideos.forEach(video => {
+    // Remove all event listeners by cloning
+    const newVideo = video.cloneNode(true);
+    video.parentNode.replaceChild(newVideo, video);
+  });
+});
+Fix common pause/unpause causes:
+javascript// CRITICAL: Remove these problematic patterns
+// DELETE any code that does this:
+video.addEventListener('loadedmetadata', () => {
+  video.pause(); // This causes the bug
+});
+
+video.addEventListener('canplay', () => {
+  video.pause(); // This causes the bug
+});
+
+// DELETE any auto-pause on seek
+video.addEventListener('seeked', () => {
+  video.pause(); // This causes the bug
+});
+
+// DELETE multiple video element manipulations
+const video1 = document.querySelector('video');
+const video2 = document.getElementById('video');
+// These might be the same element causing conflicts
+3. COMPLETELY REMOVE TRANSCRIPT COMPONENT
+Delete all transcript-related code:
+javascript// DELETE these components completely:
+// - TranscriptDisplay.js/jsx
+// - TranscriptViewer.js/jsx  
+// - TranscriptSection.js/jsx
+// - Any component with "transcript" in the name
+
+// DELETE these CSS classes:
+// - .transcript-section
+// - .transcript-content
+// - .transcript-wrapper
+// - Any CSS with "transcript" in selector
+
+// DELETE these HTML elements:
+/*
+<div class="transcript-section">
+  <h3>Transcript</h3>
+  <div class="transcript-content">
+    <!-- DELETE THIS ENTIRE BLOCK -->
+  </div>
+</div>
+*/
+
+// DELETE these API endpoints:
+app.get('/videos/:id/transcript', ...); // DELETE
+app.post('/transcript/process', ...); // DELETE
+
+// DELETE these database queries:
+// SELECT transcript_text FROM videos WHERE...
+// Any query that references transcript fields
+
+// DELETE these imports:
+// import TranscriptDisplay from './components/TranscriptDisplay';
+// import { fetchTranscript } from './api/transcript';
+Clean up references:
+javascript// Frontend: Remove transcript references
+function VideoPage({ videoId }) {
+  // DELETE these lines:
+  // const [transcript, setTranscript] = useState('');
+  // const [showTranscript, setShowTranscript] = useState(false);
+  
+  // DELETE these useEffect calls:
+  // useEffect(() => {
+  //   fetchTranscript(videoId).then(setTranscript);
+  // }, [videoId]);
+  
+  return (
+    <div className="video-page">
+      <VideoPlayerManager videoId={videoId} />
+      {/* DELETE: <TranscriptDisplay transcript={transcript} /> */}
+      <QuizSection videoId={videoId} />
+      <FlashcardSection videoId={videoId} />
+    </div>
+  );
+}
+
+// Backend: Remove transcript database fields
+// Run this migration:
+/*
+ALTER TABLE videos DROP COLUMN transcript_text;
+ALTER TABLE videos DROP COLUMN transcript_data;
+ALTER TABLE videos DROP COLUMN transcript_status;
+DROP TABLE IF EXISTS transcripts;
+*/
+4. IMPLEMENTATION CHECKLIST
+Placeholder Data Removal:
+
+ Remove all hardcoded quiz questions
+ Remove all sample summary text
+ Remove all placeholder flashcard content
+ Ensure Gemini API is called for every video
+ Validate generated content is real, not placeholder
+ Test content generation with multiple videos
+
+Video Playback Fix:
+
+ Remove conflicting video event listeners
+ Fix Video.js initialization sequence
+ Ensure seeking doesn't cause auto-pause
+ Test play/pause functionality works smoothly
+ Test timestamp seeking from quiz/search results
+ Verify no duplicate video elements exist
+
+Transcript Removal:
+
+ Delete all transcript component files
+ Remove transcript CSS classes
+ Delete transcript API endpoints
+ Remove transcript database fields
+ Clean up transcript imports/references
+ Verify no broken transcript links remain
+
+5. TESTING REQUIREMENTS
+Test real-time generation:
+
+Upload new video and verify real quiz/summary/flashcards generate
+Ensure no placeholder content appears anywhere
+Test with different video lengths and content types
+
+Test video playback:
+
+Play video and ensure it doesn't auto-pause
+Test seeking from timestamps in quiz results
+Test seeking from search results
+Verify smooth play/pause control
+
+Verify transcript removal:
+
+Check no transcript UI elements exist
+Verify no transcript API calls are made
+Ensure app works without any transcript functionality
+
+EXECUTE THESE CRITICAL FIXES NOW. Zero tolerance for placeholder data or video playback issues. Remove transcript functionality completely.

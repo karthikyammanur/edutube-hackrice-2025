@@ -150,7 +150,7 @@ export default function Quiz(): JSX.Element {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <a href="#" className="text-lg font-semibold text-text">EduTube Notes - Quiz</a>
           <div className="flex items-center gap-4">
-            <a href={`#upload?videoId=${videoId}`} className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline">Back to upload</a>
+            <a href={`#upload?videoId=${videoId}`} className="underline-offset-4 hover:underline" style={{color: 'var(--text-secondary)'}} onMouseEnter={(e) => {(e.target as HTMLElement).style.color = 'var(--text-primary)';}} onMouseLeave={(e) => {(e.target as HTMLElement).style.color = 'var(--text-secondary)';}}>Back to upload</a>
           </div>
         </div>
       </header>

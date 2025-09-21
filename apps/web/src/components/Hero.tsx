@@ -10,30 +10,30 @@ function UploadIcon(): JSX.Element {
 export default function Hero(): JSX.Element {
 	return (
 		<div className="max-w-4xl">
-			<h1 className="mt-4 text-4xl font-medium leading-tight sm:text-5xl">
+			<h1 className="mt-4 text-4xl font-medium leading-tight sm:text-5xl" style={{color: 'var(--text-primary)'}}>
 				Turn lectures into{" "}
-				<span style={{ fontFamily: '"Playfair Display", serif' }} className="text-primary text-[1em] align-baseline ">
+				<span style={{ fontFamily: '"Playfair Display", serif', color: 'var(--accent-primary)' }} className="text-[1em] align-baseline">
 					smart
 				</span>{" "}
-				notes, interactive{" "}
-				<span style={{ fontFamily: '"Playfair Display", serif' }} className="underline decoration-primary/30 underline-offset-4 text-[1em] align-baseline leading-tight">
+				interactive{" "}
+				<span style={{ fontFamily: '"Playfair Display", serif', color: 'var(--text-primary)', textDecorationColor: 'var(--accent-primary)' }} className="underline underline-offset-4 text-[1em] align-baseline leading-tight">
 					quizzes
 				</span>
 				, and flipping{" "}
-				<span style={{ fontFamily: '"Playfair Display", serif' }} className="bg-surface px-2 py-0.5 rounded text-[1em] align-baseline leading-tight">
+				<span style={{ fontFamily: '"Playfair Display", serif', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }} className="px-2 py-0.5 rounded text-[1em] align-baseline leading-tight">
 					flashcards
 				</span>
 				 — all on one screen.
 			</h1>
-			<p className="mt-4 text-base md:text-lg text-subtext max-w-3xl">
+			<p className="mt-4 text-base md:text-lg max-w-3xl" style={{color: 'var(--text-secondary)'}}>
 				Upload any lecture video and ask questions, get summaries, test yourself, and review key terms without switching tabs.
 			</p>
 			<div className="mt-8 flex flex-wrap items-center gap-3">
 				<RippleButton
 					as="a"
 					href="#upload"
-					className="bg-text text-background hover:bg-primaryHover"
-					style={{ ['--ripple-button-ripple-color' as any]: 'rgba(0,0,0,0.25)' }}
+					className="btn"
+					style={{ backgroundColor: 'var(--accent-primary)', color: 'var(--text-inverse)', ['--ripple-button-ripple-color' as any]: 'rgba(255,255,255,0.25)' }}
 				>
 					<UploadIcon />
 					Upload a video

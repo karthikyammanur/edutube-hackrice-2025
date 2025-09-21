@@ -74,7 +74,7 @@ export function ConnectionIndicator(): JSX.Element {
 
   if (status.checking) {
     return (
-      <div className="flex items-center gap-1 text-xs text-slate-500">
+      <div className="flex items-center gap-1 text-xs" style={{color: 'var(--text-secondary)'}}>
         <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse"></div>
         <span>Connecting...</span>
       </div>

@@ -98,31 +98,44 @@ export class TwelveLabsRetriever {
   }
 
   /**
-   * Get embeddings for videos - placeholder implementation
+   * Get embeddings for videos - check specific task status
    */
   async getEmbeddings(): Promise<any> {
     try {
-      // Get all tasks that might have embeddings
-      const tasks = await this.getClient().tasks.list();
+      // If no taskId is set, return empty
+      if (!this.taskId) {
+        console.log('⚠️ [TWELVELABS] No taskId set for embeddings check');
+        return { videoEmbedding: { segments: [] } };
+      }
+
+      // Check the specific task status
+      console.log(`🔍 [TWELVELABS] Checking task status for: ${this.taskId}`);
+      const task = await this.getClient().tasks.retrieve(this.taskId);
       
-      // Filter for embedding tasks
-      const embeddingTasks = tasks.data?.filter((task: any) => 
-        task.type === 'embedding' || task.type === 'embed'
-      ) || [];
+      // Only return segments if task is actually ready
+      if (task.status !== 'ready') {
+        console.log(`⏳ [TWELVELABS] Task ${this.taskId} not ready yet. Status: ${task.status}`);
+        return { videoEmbedding: { segments: [] } };
+      }
       
-      // Return structure expected by the routes
+      console.log(`✅ [TWELVELABS] Task ${this.taskId} is ready! Generating mock segments for now.`);
+      
+      // Task is ready, return mock segments for now
+      // TODO: Replace with actual segment extraction when TwelveLabs API is fully working
+      const mockSegments = Array.from({ length: 10 }, (_, index) => ({
+        startOffsetSec: index * 30,
+        endOffsetSec: (index + 1) * 30,
+        embeddingScope: 'visual',
+        taskId: this.taskId
+      }));
+      
       return {
         videoEmbedding: {
-          segments: embeddingTasks.map((task: any, index: number) => ({
-            startOffsetSec: index * 30, // Mock segment timing
-            endOffsetSec: (index + 1) * 30,
-            embeddingScope: task.status || 'visual',
-            taskId: task._id
-          }))
+          segments: mockSegments
         }
       };
     } catch (error) {
-      console.error('Error getting embeddings:', error);
+      console.error('❌ [TWELVELABS] Error getting embeddings:', error);
       return { videoEmbedding: { segments: [] } };
     }
   }

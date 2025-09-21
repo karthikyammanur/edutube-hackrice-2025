@@ -172,44 +172,11 @@ export class StudyService {
       
     } catch (error: any) {
       const unifiedTime = Date.now() - unifiedStart;
-      console.warn(`⚠️ [STUDY-GEN] Unified generation failed after ${unifiedTime}ms: ${error.message}`);
-      console.log(`📝 [STUDY-GEN] Using comprehensive fallback system...`);
+      console.error(`❌ [STUDY-GEN] Unified generation failed after ${unifiedTime}ms: ${error.message}`);
+      console.error(`� [STUDY-GEN] NO FALLBACK CONTENT - Zero tolerance for placeholder data`);
       
-      // Create comprehensive fallback
-      const fallbackTopics = Array.from({ length: topicsCount }, (_, i) => `Key Concept ${i + 1}`);
-      const fallbackFlashcards: Record<string, FlashcardItem[]> = {};
-      const fallbackQuiz: Record<string, QuizQuestion[]> = {};
-      
-      fallbackTopics.forEach(topic => {
-        fallbackFlashcards[topic] = Array.from({ length: Math.min(flashcardsPerTopic, 3) }, (_, i) => ({
-          question: `${topic} - Important Question ${i + 1}`,
-          answer: `This is a key concept related to ${topic}. Due to API limitations, detailed content is not available.`,
-          topic,
-          difficulty: "medium" as const
-        }));
-        
-        fallbackQuiz[topic] = Array.from({ length: Math.min(quizPerTopic, 3) }, (_, i) => ({
-          type: "multiple_choice" as const,
-          prompt: `Which statement best describes ${topic}? (Question ${i + 1})`,
-          choices: [
-            { id: 'a', text: `A key aspect of ${topic}` },
-            { id: 'b', text: `An unrelated concept` },
-            { id: 'c', text: `A complex theory` },
-            { id: 'd', text: `A simple definition` }
-          ],
-          answer: 'a',
-          explanation: `This is a fallback question for ${topic}. Due to API limitations, detailed questions are not available.`,
-          topic,
-          difficulty: "medium" as const
-        }));
-      });
-      
-      unifiedResults = {
-        summary: `**Video Summary** (Comprehensive fallback)\n\nThis video contains educational content with multiple segments. The content includes lectures, discussions, and explanatory material covering various topics.\n\n**Key Learning Areas:**\n- Introduction and overview\n- Core concepts and definitions\n- Practical examples and applications\n- Important formulas and procedures\n- Visual elements and diagrams\n\n**Note:** This summary was generated using fallback methods due to temporary API limitations.`,
-        topics: fallbackTopics,
-        flashcardsByTopic: fallbackFlashcards,
-        quizByTopic: fallbackQuiz
-      };
+      // CRITICAL: NO PLACEHOLDER DATA ALLOWED - Throw error instead of using fallback
+      throw new Error(`Study materials generation failed: ${error.message}. Please ensure Gemini API is properly configured and video content is available.`);
     }
 
     console.log(`📊 [STUDY-GEN] Step 5: Assembling final results from unified generation...`);

@@ -1,8 +1,10 @@
 import { Firestore } from '@google-cloud/firestore';
 import type { VideoMetadata, VideoSegment } from '@edutube/types';
+import type { StudyMaterialsResponse } from './automatic-study-generator.js';
 
 const VIDEOS_COLLECTION = 'videos';
 const SEGMENTS_COLLECTION = 'video_segments';
+const STUDY_MATERIALS_COLLECTION = 'study_materials';
 
 let firestore: Firestore | null = null;
 function getFirestore() {
@@ -85,5 +87,43 @@ export const Db = {
     });
     
     await batch.commit();
+  },
+
+  /**
+   * Store study materials for automatic generation workflow
+   */
+  async storeStudyMaterials(videoId: string, materials: StudyMaterialsResponse): Promise<void> {
+    const db = getFirestore();
+    const ref = db.collection(STUDY_MATERIALS_COLLECTION).doc(videoId);
+    
+    const studyMaterialsDoc = {
+      videoId,
+      summary: materials.summary,
+      quiz: materials.quiz,
+      flashcards: materials.flashcards,
+      generatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    await ref.set(studyMaterialsDoc, { merge: true });
+  },
+
+  /**
+   * Retrieve study materials for a video
+   */
+  async getStudyMaterials(videoId: string): Promise<StudyMaterialsResponse | null> {
+    const db = getFirestore();
+    const snap = await db.collection(STUDY_MATERIALS_COLLECTION).doc(videoId).get();
+    
+    if (!snap.exists) return null;
+    
+    const data = snap.data();
+    if (!data) return null;
+    
+    return {
+      summary: data.summary || '',
+      quiz: data.quiz || [],
+      flashcards: data.flashcards || []
+    };
   },
 };

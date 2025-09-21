@@ -129,21 +129,21 @@ export default function Summary(): JSX.Element {
     setChatQuery('');
   }
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background">
+    <div className="min-h-dvh" style={{backgroundColor: 'var(--bg-primary)'}}>
+      <header className="sticky top-0 z-40 navbar" style={{borderBottomColor: 'var(--border-color)'}}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="#" className="text-lg font-semibold text-text">EduTube Notes</a>
+          <a href="#" className="text-lg font-semibold" style={{color: 'var(--text-primary)'}}>EduTube Notes</a>
           <nav className="flex items-center gap-4 text-sm">
             {videoId && (
-              <a href={`#upload?videoId=${videoId}`} className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline">Back to video</a>
+              <a href={`#upload?videoId=${videoId}`} className="nav-link underline-offset-4 hover:underline">Back to video</a>
             )}
-            <a href="#upload" className="text-slate-600 hover:text-slate-900 underline-offset-4 hover:underline">Upload New</a>
+            <a href="#upload" className="nav-link underline-offset-4 hover:underline">Upload New</a>
           </nav>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10 pb-40">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-text">
+          <h1 className="text-2xl sm:text-3xl font-semibold" style={{color: 'var(--text-primary)'}}>
             {summaryData?.title || videoTitle || 'Lecture Summary'}
           </h1>
           {videoId && (
@@ -154,12 +154,15 @@ export default function Summary(): JSX.Element {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                className="px-3 py-1 border border-border rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text"
+                className="px-3 py-1 rounded-lg text-sm"
+                style={{backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--input-border)', borderWidth: '1px', borderStyle: 'solid'}}
+                onFocus={(e) => (e.target as HTMLElement).style.borderColor = 'var(--input-focus)'}
+                onBlur={(e) => (e.target as HTMLElement).style.borderColor = 'var(--input-border)'}
               />
               <button 
                 onClick={() => handleSearch(searchQuery)}
                 disabled={searchLoading}
-                className="p-2 bg-text text-background rounded-lg hover:bg-primaryHover transition disabled:opacity-50"
+                className="btn p-2 rounded-lg transition disabled:opacity-50"
               >
                 <Search className="h-4 w-4" />
               </button>
@@ -169,8 +172,8 @@ export default function Summary(): JSX.Element {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text"></div>
-            <span className="ml-3 text-slate-600">Loading summary...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: 'var(--accent-primary)'}}></div>
+            <span className="ml-3" style={{color: 'var(--text-secondary)'}}>Loading summary...</span>
           </div>
         )}
 
@@ -195,7 +198,7 @@ export default function Summary(): JSX.Element {
                   <p className="text-sm text-blue-600 mb-1">
                     {Math.floor(result.startSec / 60)}:{(result.startSec % 60).toString().padStart(2, '0')} - {Math.floor(result.endSec / 60)}:{(result.endSec % 60).toString().padStart(2, '0')}
                   </p>
-                  <p className="text-slate-700">{result.text}</p>
+                  <p style={{color: 'var(--text-secondary)'}}>{result.text}</p>
                   <div className="mt-2 text-xs text-blue-500">
                     Confidence: {(result.confidence * 100).toFixed(1)}%
                   </div>
@@ -215,8 +218,8 @@ export default function Summary(): JSX.Element {
             </FadeIn>
 
             {summaryData.keyConcepts && summaryData.keyConcepts.length > 0 && (
-              <FadeIn once y={8} className="rounded-2xl border border-border bg-white p-6">
-                <h2 className="text-lg font-medium text-text">Key Concepts</h2>
+              <FadeIn once y={8} className="rounded-2xl border p-6" style={{borderColor: 'var(--border-primary)', backgroundColor: 'var(--bg-primary)'}}>
+                <h2 className="text-lg font-medium" style={{color: 'var(--text-primary)'}}>Key Concepts</h2>
                 <ul className="mt-3 list-disc pl-5 space-y-2 text-subtext">
                   {summaryData.keyConcepts.map((concept, i) => (
                     <li key={i}>
@@ -258,7 +261,7 @@ export default function Summary(): JSX.Element {
               className="mx-auto max-w-3xl"
               onSubmit={handleChatSubmit}
             >
-              <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 shadow-lg">
+              <div className="flex items-center gap-2 rounded-full border px-4 py-2 shadow-lg" style={{borderColor: 'var(--border-primary)', backgroundColor: 'var(--bg-primary)'}}>
                 <label htmlFor="chat-input" className="sr-only">Ask about the notes</label>
                 <input
                   id="chat-input"
@@ -266,17 +269,21 @@ export default function Summary(): JSX.Element {
                   placeholder="Ask about the notes..."
                   value={chatQuery}
                   onChange={(e) => setChatQuery(e.target.value)}
-                  className="w-full bg-transparent px-1 py-2 text-text placeholder:text-subtext focus-visible:outline-none"
+                  className="w-full bg-transparent px-1 py-2 focus-visible:outline-none"
+                  style={{color: 'var(--text-primary)'}}
                   disabled={searchLoading}
                 />
                 <button
                   type="submit"
                   disabled={searchLoading || !chatQuery.trim()}
-                  className="inline-flex items-center gap-2 rounded-full bg-text px-4 py-2 text-background hover:bg-primaryHover transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 transition focus-visible:outline focus-visible:outline-2 disabled:opacity-50"
+                  style={{backgroundColor: 'var(--accent-primary)', color: 'var(--text-inverse)', outlineColor: 'var(--accent-primary)'}}
+                  onMouseEnter={(e) => {if (!(e.target as HTMLButtonElement).disabled) (e.target as HTMLElement).style.backgroundColor = 'var(--accent-hover)';}}
+                  onMouseLeave={(e) => {(e.target as HTMLElement).style.backgroundColor = 'var(--accent-primary)';}}
                   aria-label="Send"
                 >
                   {searchLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{borderColor: 'var(--text-inverse)'}}></div>
                   ) : (
                     <Send className="h-4 w-4" />
                   )}

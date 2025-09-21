@@ -40,14 +40,14 @@ export default function AlternatingFeatures(): JSX.Element {
             {/* Text */}
             <FadeIn once y={10} className={`${isEven ? '' : 'lg:order-2'}`}>
               {f.tag && (
-                <p className="text-xs uppercase tracking-wider text-subtext">{f.tag}</p>
+                <p className="text-xs uppercase tracking-wider" style={{color: 'var(--text-secondary)'}}>{f.tag}</p>
               )}
-              <h3 className="mt-2 text-2xl sm:text-3xl font-semibold text-text">{f.title}</h3>
-              <p className="mt-3 text-subtext max-w-prose">{f.copy}</p>
+              <h3 className="mt-2 text-2xl sm:text-3xl font-semibold" style={{color: 'var(--text-primary)'}}>{f.title}</h3>
+              <p className="mt-3 max-w-prose" style={{color: 'var(--text-secondary)'}}>{f.copy}</p>
             </FadeIn>
             {/* Media placeholder */}
             <FadeIn once y={10} className={`${isEven ? '' : 'lg:order-1'}`}>
-              <div className="aspect-video w-full rounded-2xl border border-border bg-surface grid place-items-center text-subtext">
+              <div className="aspect-video w-full rounded-2xl border grid place-items-center" style={{borderColor: 'var(--border-primary)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)'}}>
                 <span>Demo clip coming soon</span>
               </div>
             </FadeIn>

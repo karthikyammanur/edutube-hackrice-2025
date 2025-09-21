@@ -7,14 +7,15 @@ import AlternatingFeatures from './components/AlternatingFeatures';
 
 export default function Landing(): JSX.Element {
 	return (
-		<div className="relative min-h-dvh bg-background">
+		<div className="relative min-h-dvh" style={{backgroundColor: 'var(--bg-primary)'}}>
 			<a
-				className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-text bg-surface text-text px-3 py-2 rounded-md shadow"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 px-3 py-2 rounded-md"
+				style={{backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', boxShadow: 'var(--shadow-md)'}}
 				href="#main"
 			>
 				Skip to content
 			</a>
-			<header className="sticky top-0 z-40 border-b border-border/80 bg-background">
+			<header className="sticky top-0 z-40 navbar" style={{borderBottomColor: 'var(--border-color)'}}>
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<Header />
 				</div>

@@ -43,7 +43,10 @@ export class ErrorBoundary extends React.Component<
                 </button>
                 <button
                   onClick={() => this.setState({ hasError: false, error: null })}
-                  className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                  className="w-full px-4 py-2 rounded-lg transition"
+                  style={{backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)'}}
+                  onMouseEnter={(e) => {(e.target as HTMLElement).style.backgroundColor = 'var(--bg-tertiary)';}}
+                  onMouseLeave={(e) => {(e.target as HTMLElement).style.backgroundColor = 'var(--bg-secondary)';}}
                 >
                   Try Again
                 </button>

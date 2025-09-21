@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { TwelveLabsRetriever, SearchHit } from '../services/twelvelabs.js';
 import { GeminiService } from '../services/gemini.js';
 import { Db } from '../services/db.js';
+import { SegmentValidator } from '../services/segment-validator.js';
 
 export async function registerSearchRoutes(app: FastifyInstance) {
   // The killer demo feature: semantic search through lecture videos!
@@ -71,18 +72,49 @@ export async function registerSearchRoutes(app: FastifyInstance) {
         throw error;
       }
       
-      const searchHits = await retriever.searchVideo({
+      const rawSearchHits = await retriever.searchVideo({
         videoId,
         taskId: video.taskId,
         query: query.trim(),
         limit
       });
 
+      // Validate and clamp timestamps in search results
+      const searchHits = rawSearchHits
+        .map(hit => {
+          if (!hit.startSec || !hit.endSec) return hit;
+          
+          const validation = SegmentValidator.validateSegment(
+            hit.startSec, 
+            hit.endSec, 
+            video.durationSec
+          );
+          
+          if (!validation.isValid) {
+            app.log.warn(`Invalid search result timestamp ${hit.startSec}-${hit.endSec}s for video ${videoId}`);
+            return null;
+          }
+          
+          if (validation.errors.length > 0) {
+            app.log.info(`Search result timestamp adjusted: ${validation.errors.join(', ')}`);
+          }
+          
+          return {
+            ...hit,
+            startSec: validation.validatedStart,
+            endSec: validation.validatedEnd,
+            timestamp: SegmentValidator.formatTimestamp(validation.validatedStart), // Add MM:SS format
+            deepLink: `#t=${Math.floor(validation.validatedStart)}` // Add deep link format
+          };
+        })
+        .filter((hit): hit is NonNullable<typeof hit> => hit !== null);
+
       app.log.info({
         videoId,
         query: query.trim(),
-        resultsCount: searchHits.length
-      }, 'Video search performed');
+        rawResultsCount: rawSearchHits.length,
+        validResultsCount: searchHits.length
+      }, 'Video search performed with timestamp validation');
 
       // Optional: Generate AI summary of search results
       // OPTIMIZATION: Only generate summary if specifically requested AND sufficient content

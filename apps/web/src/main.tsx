@@ -1,13 +1,17 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import './utils/themeInit';
 import Landing from './Landing';
 import Upload from './Upload';
 import Flashcards from './Flashcards';
 import Summary from './Summary';
 import Quiz from './Quiz';
 import { VideoProvider } from './hooks/use-video';
+import { StudyMaterialsProvider } from './hooks/use-study-materials';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ThemeToggle } from './components/ThemeToggle';
+import { initializeTheme } from './utils/ThemeManager';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -44,14 +48,24 @@ function AppRouter(): JSX.Element {
 	return <Landing />;
 }
 
-root.render(
-	<React.StrictMode>
+function App(): JSX.Element {
+	// Initialize theme manager on app mount
+	React.useEffect(() => {
+		initializeTheme();
+	}, []);
+
+	return (
 		<ErrorBoundary>
 			<VideoProvider>
-				<AppRouter />
+				<StudyMaterialsProvider>
+					<ThemeToggle />
+					<AppRouter />
+				</StudyMaterialsProvider>
 			</VideoProvider>
 		</ErrorBoundary>
-	</React.StrictMode>
-);
+	);
+}
+
+root.render(<App />);
 
 

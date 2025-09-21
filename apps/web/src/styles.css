@@ -5,9 +5,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Focus styles override to ensure good visibility */
+/* COMPREHENSIVE CSS VARIABLES SYSTEM FOR DARK MODE */
 :root {
-	--ring-color: #0A0A0A;
+  /* Light theme (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --bg-card: #ffffff;
+  --bg-hover: #f8f9fa;
+  
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --text-inverse: #ffffff;
+  
+  --border-color: #dee2e6;
+  --border-light: #e9ecef;
+  --border-dark: #adb5bd;
+  
+  --accent-primary: #007bff;
+  --accent-secondary: #6610f2;
+  --accent-success: #28a745;
+  --accent-danger: #dc3545;
+  --accent-warning: #ffc107;
+  --accent-info: #17a2b8;
+  
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --input-focus: #80bdff;
+  
+  --video-player-bg: #000000;
+  --video-controls-bg: rgba(0, 0, 0, 0.7);
+  
+  --ring-color: #0A0A0A;
+}
+
+[data-theme="dark"] {
+  /* Dark theme overrides */
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2d2d2d;
+  --bg-card: #1e1e1e;
+  --bg-hover: #2d2d2d;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #8a8a8a;
+  --text-inverse: #121212;
+  
+  --border-color: #404040;
+  --border-light: #2d2d2d;
+  --border-dark: #595959;
+  
+  --accent-primary: #4dabf7;
+  --accent-secondary: #9775fa;
+  --accent-success: #51cf66;
+  --accent-danger: #ff6b6b;
+  --accent-warning: #ffd43b;
+  --accent-info: #22b8cf;
+  
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+  
+  --input-bg: #2d2d2d;
+  --input-border: #404040;
+  --input-focus: #4dabf7;
+  
+  --video-player-bg: #000000;
+  --video-controls-bg: rgba(0, 0, 0, 0.8);
+  
+  --ring-color: #4dabf7;
+}
+
+/* SMOOTH TRANSITIONS */
+* {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease, 
+              box-shadow 0.3s ease;
+}
+
+/* Prevent transition on page load */
+.no-transition {
+  transition: none !important;
 }
 
 *:focus-visible {
@@ -15,18 +100,196 @@
 	outline-offset: 2px;
 }
 
+/* UNIVERSAL COMPONENT STYLING */
 /* Typography defaults */
 html,
 body,
 #root {
 	height: 100%;
 }
+
 body {
 	font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
 		Ubuntu, Cantarell, Noto Sans, sans-serif;
-	color: #0A0A0A;
-	background-color: #FFFFFF;
+	background-color: var(--bg-primary);
+	color: var(--text-primary);
 }
+
+/* Base elements */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+p, span, div {
+  color: var(--text-primary);
+}
+
+.text-muted, .secondary-text {
+  color: var(--text-secondary);
+}
+
+/* Cards and containers */
+.card, .container, .content-wrapper {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Buttons */
+.btn, button {
+  background-color: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+
+.btn:hover, button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-dark);
+}
+
+.btn-success {
+  background-color: var(--accent-success);
+  border-color: var(--accent-success);
+}
+
+.btn-danger {
+  background-color: var(--accent-danger);
+  border-color: var(--accent-danger);
+}
+
+/* Forms */
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--input-border);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 0.2rem rgba(128, 189, 255, 0.25);
+}
+
+/* Navigation */
+.navbar, .nav, .navigation {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.nav-link, .navbar-nav .nav-link {
+  color: var(--text-secondary);
+}
+
+.nav-link:hover, .navbar-nav .nav-link:hover {
+  color: var(--text-primary);
+}
+
+/* THEME TOGGLE BUTTON STYLING */
+.theme-toggle-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.theme-toggle-btn {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--bg-hover);
+  transform: scale(1.1);
+}
+
+.theme-icon {
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.dark-icon {
+  display: none;
+}
+
+[data-theme="dark"] .light-icon {
+  display: none;
+}
+
+[data-theme="dark"] .dark-icon {
+  display: inline;
+}
+
+/* VIDEO PLAYER THEMING */
+.video-player-container {
+  background-color: var(--video-player-bg);
+}
+
+.video-player-container video {
+  background-color: var(--video-player-bg);
+}
+
+.video-controls {
+  background-color: var(--video-controls-bg);
+}
+
+/* QUIZ COMPONENTS THEMING */
+.quiz-container {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.quiz-option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.quiz-option:hover {
+  background-color: var(--bg-hover);
+}
+
+.quiz-option.correct {
+  background-color: var(--accent-success);
+  color: var(--text-inverse);
+}
+
+.quiz-option.incorrect {
+  background-color: var(--accent-danger);
+  color: var(--text-inverse);
+}
+
+.score-counter {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* FLASHCARD COMPONENTS THEMING */
+.flashcard {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
+.flashcard-counter {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.flashcard-nav-btn {
+  background-color: var(--accent-primary);
+  color: var(--text-inverse);
+}
+
+
 
 /* Utility for Playfair font */
 .font-playfair {
