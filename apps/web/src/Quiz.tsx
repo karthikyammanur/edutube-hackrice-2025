@@ -4,11 +4,11 @@ import { useStudyMaterials } from './hooks/use-study-materials';
 
 export default function Quiz(): JSX.Element {
   const { studyMaterials, loading, error, fetchStudyMaterials } = useStudyMaterials();
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState(false);
   const [videoId, setVideoId] = useState<string>('');
+  const [allQuestions, setAllQuestions] = useState<any[]>([]);
 
   useEffect(() => {
     console.log('🎯 [QUIZ-FRONTEND] Quiz component mounted');
@@ -23,12 +23,23 @@ export default function Quiz(): JSX.Element {
   }, [fetchStudyMaterials]);
   
   useEffect(() => {
-    // Set initial topic when study materials are loaded
-    if (studyMaterials?.topics && studyMaterials.topics.length > 0 && !selectedTopic) {
-      setSelectedTopic(studyMaterials.topics[0]);
-      console.log('🏷️ [QUIZ-FRONTEND] Selected first topic:', studyMaterials.topics[0]);
+    // Combine all questions from all topics into a single quiz
+    if (studyMaterials?.quizByTopic) {
+      const combinedQuestions: any[] = [];
+      
+      Object.entries(studyMaterials.quizByTopic).forEach(([topic, questions]) => {
+        questions.forEach((question: any) => {
+          combinedQuestions.push({
+            ...question,
+            originalTopic: topic // Keep track of original topic for feedback
+          });
+        });
+      });
+      
+      setAllQuestions(combinedQuestions);
+      console.log(`🎯 [QUIZ-FRONTEND] Combined ${combinedQuestions.length} questions from all topics`);
     }
-  }, [studyMaterials, selectedTopic]);
+  }, [studyMaterials]);
 
   function handleAnswerSelect(questionIndex: number, answerIndex: number) {
     console.log(`📝 [QUIZ-FRONTEND] Answer selected - Q${questionIndex + 1}: Option ${answerIndex + 1}`);
@@ -39,20 +50,19 @@ export default function Quiz(): JSX.Element {
   }
 
   function calculateScore() {
-    if (!studyMaterials || !selectedTopic) return { correct: 0, total: 0 };
+    if (!allQuestions.length) return { correct: 0, total: 0 };
     
-    const questions = studyMaterials.quizByTopic[selectedTopic] || [];
     let correct = 0;
     
-    questions.forEach((question, index) => {
+    allQuestions.forEach((question, index) => {
       const selectedChoiceId = question.choices?.[selectedAnswers[index]]?.id;
       if (selectedChoiceId === question.answer) {
         correct++;
       }
     });
     
-    console.log(`🎯 [QUIZ-FRONTEND] Quiz score calculated: ${correct}/${questions.length}`);
-    return { correct, total: questions.length };
+    console.log(`🎯 [QUIZ-FRONTEND] Quiz score calculated: ${correct}/${allQuestions.length}`);
+    return { correct, total: allQuestions.length };
   }
 
   function submitQuiz() {
@@ -63,12 +73,11 @@ export default function Quiz(): JSX.Element {
   }
 
   function generateQuizFeedback(): Array<{concept: string; timestamp: string; questionText: string}> {
-    if (!studyMaterials || !selectedTopic) return [];
+    if (!allQuestions.length) return [];
     
-    const questions = studyMaterials.quizByTopic[selectedTopic] || [];
     const wrongAnswers: Array<{concept: string; timestamp: string; questionText: string}> = [];
     
-    questions.forEach((question, index) => {
+    allQuestions.forEach((question, index) => {
       const selectedChoiceId = question.choices?.[selectedAnswers[index]]?.id;
       if (selectedChoiceId !== question.answer) {
         // Generate realistic timestamps based on question index and content
@@ -78,7 +87,7 @@ export default function Quiz(): JSX.Element {
         const timestamp = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
         wrongAnswers.push({
-          concept: question.topic || 'Concept',
+          concept: question.topic || question.originalTopic || 'Concept',
           timestamp: timestamp,
           questionText: question.prompt
         });
@@ -163,7 +172,7 @@ export default function Quiz(): JSX.Element {
     );
   }
 
-  if (!studyMaterials || !studyMaterials.topics.length) {
+  if (!allQuestions.length && !loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center" style={{backgroundColor: 'var(--bg-primary)'}}>
         <div className="text-center">
@@ -179,7 +188,6 @@ export default function Quiz(): JSX.Element {
     );
   }
 
-  const currentQuestions = studyMaterials.quizByTopic[selectedTopic] || [];
   const score = showResults ? calculateScore() : null;
 
   return (
@@ -196,43 +204,12 @@ export default function Quiz(): JSX.Element {
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4" style={{color: 'var(--text-primary)'}}>Knowledge Quiz</h1>
-          
-          <div className="flex flex-wrap gap-2 mb-6">
-            {studyMaterials.topics.map((topic) => (
-              <button
-                key={topic}
-                onClick={() => {
-                  console.log('🏷️ [QUIZ-FRONTEND] Topic changed to:', topic);
-                  setSelectedTopic(topic);
-                  setCurrentQuestionIndex(0);
-                  setSelectedAnswers({});
-                  setShowResults(false);
-                }}
-                className="px-4 py-2 rounded-lg font-medium transition"
-                style={{
-                  backgroundColor: selectedTopic === topic ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-                  color: selectedTopic === topic ? 'var(--text-inverse)' : 'var(--text-primary)',
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedTopic !== topic) {
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedTopic !== topic) {
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--bg-secondary)';
-                  }
-                }}
-              >
-                {topic}
-              </button>
-            ))}
-          </div>
+          <p className="text-lg" style={{color: 'var(--text-secondary)'}}>Test your understanding of all the key concepts from the lecture</p>
         </div>
 
-        {currentQuestions.length === 0 ? (
+        {allQuestions.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-lg" style={{color: 'var(--text-secondary)'}}>No quiz questions available for this topic</p>
+            <p className="text-lg" style={{color: 'var(--text-secondary)'}}>No quiz questions available</p>
           </div>
         ) : showResults ? (
           <motion.div
@@ -240,7 +217,7 @@ export default function Quiz(): JSX.Element {
             animate={{ opacity: 1, y: 0 }}
             className="quiz-container rounded-2xl p-8"
           >
-            <h2 className="text-2xl font-bold mb-6" style={{color: 'var(--text-primary)'}}>Quiz Results - {selectedTopic}</h2>
+            <h2 className="text-2xl font-bold mb-6" style={{color: 'var(--text-primary)'}}>Quiz Results</h2>
             <div className="text-center mb-8">
               <div className="text-4xl font-bold mb-2 score-counter p-4 rounded-lg" style={{color: 'var(--text-primary)'}}>
                 {score?.correct}/{score?.total}
@@ -287,7 +264,7 @@ export default function Quiz(): JSX.Element {
             <div className="flex mt-8 justify-center gap-4">
               <button
                 onClick={() => {
-                  console.log('🔄 [QUIZ-FRONTEND] Retaking quiz for topic:', selectedTopic);
+                  console.log('🔄 [QUIZ-FRONTEND] Retaking quiz');
                   setSelectedAnswers({});
                   setShowResults(false);
                   setCurrentQuestionIndex(0);
@@ -315,9 +292,9 @@ export default function Quiz(): JSX.Element {
             style={{backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-primary)'}}
           >
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold" style={{color: 'var(--text-primary)'}}>{selectedTopic}</h2>
+              <h2 className="text-xl font-bold" style={{color: 'var(--text-primary)'}}>Comprehensive Quiz</h2>
               <span className="text-sm" style={{color: 'var(--text-secondary)'}}>
-                Question {currentQuestionIndex + 1} of {currentQuestions.length}
+                Question {currentQuestionIndex + 1} of {allQuestions.length}
               </span>
             </div>
             
@@ -325,19 +302,19 @@ export default function Quiz(): JSX.Element {
               <div className="w-full rounded-full h-2 mb-4" style={{backgroundColor: 'var(--bg-tertiary)'}}>
                 <div 
                   className="bg-text h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentQuestionIndex + 1) / currentQuestions.length) * 100}%` }}
+                  style={{ width: `${((currentQuestionIndex + 1) / allQuestions.length) * 100}%` }}
                 ></div>
               </div>
             </div>
 
-            {currentQuestions[currentQuestionIndex] && (
+            {allQuestions[currentQuestionIndex] && (
               <div>
                 <h3 className="text-lg font-medium mb-6" style={{color: 'var(--text-primary)'}}>
-                  {currentQuestions[currentQuestionIndex].prompt}
+                  {allQuestions[currentQuestionIndex].prompt}
                 </h3>
                 
                 <div className="space-y-3 mb-8">
-                  {currentQuestions[currentQuestionIndex].choices?.map((choice: any, index: number) => (
+                  {allQuestions[currentQuestionIndex].choices?.map((choice: any, index: number) => (
                     <label
                       key={choice.id}
                       className="block p-4 rounded-lg border cursor-pointer transition"
@@ -375,10 +352,10 @@ export default function Quiz(): JSX.Element {
                     Previous
                   </button>
                   
-                  {currentQuestionIndex === currentQuestions.length - 1 ? (
+                  {currentQuestionIndex === allQuestions.length - 1 ? (
                     <button
                       onClick={submitQuiz}
-                      disabled={Object.keys(selectedAnswers).length !== currentQuestions.length}
+                      disabled={Object.keys(selectedAnswers).length !== allQuestions.length}
                       className="px-6 py-3 bg-text text-background rounded-lg hover:bg-primaryHover font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Submit Quiz
@@ -386,7 +363,7 @@ export default function Quiz(): JSX.Element {
                   ) : (
                     <button
                       onClick={() => {
-                        if (currentQuestionIndex < currentQuestions.length - 1) {
+                        if (currentQuestionIndex < allQuestions.length - 1) {
                           setCurrentQuestionIndex(currentQuestionIndex + 1);
                         }
                       }}

@@ -36,33 +36,70 @@ export async function registerStudyRoutes(app: FastifyInstance) {
           console.log(`✅ [STUDY-API] Found automatically generated materials for video ${videoId}`);
           
           // Convert to the expected format for backward compatibility
+          // Extract topics from quiz questions to create meaningful categorization
+          const topicsFromQuiz = [...new Set(studyMaterials.quiz.map(q => q.concept))];
+          const topics = topicsFromQuiz.length > 0 ? topicsFromQuiz : ['General Knowledge'];
+          
+          // Distribute flashcards across topics more intelligently
+          const flashcardsByTopic: Record<string, any[]> = {};
+          
+          // Initialize empty arrays for all topics
+          topics.forEach(topic => {
+            flashcardsByTopic[topic] = [];
+          });
+          
+          // Distribute flashcards evenly across topics
+          studyMaterials.flashcards.forEach((fc, index) => {
+            const topicIndex = index % topics.length;
+            const assignedTopic = topics[topicIndex];
+            
+            flashcardsByTopic[assignedTopic].push({
+              question: fc.question,
+              answer: fc.answer,
+              topic: assignedTopic,
+              difficulty: 'medium' as const
+            });
+          });
+          
+          // Distribute quiz questions across topics based on their concepts
+          const quizByTopic: Record<string, any[]> = {};
+          
+          // Initialize empty arrays for all topics
+          topics.forEach(topic => {
+            quizByTopic[topic] = [];
+          });
+          
+          // Distribute quiz questions to their matching topics
+          studyMaterials.quiz.forEach(q => {
+            const questionTopic = q.concept;
+            
+            // Find the best matching topic or use the first topic as fallback
+            let assignedTopic = topics.find(topic => 
+              topic.toLowerCase().includes(questionTopic.toLowerCase()) ||
+              questionTopic.toLowerCase().includes(topic.toLowerCase())
+            ) || topics[0];
+            
+            quizByTopic[assignedTopic].push({
+              type: 'multiple_choice' as const,
+              prompt: q.question,
+              choices: q.options.map((opt, idx) => ({ 
+                id: ['a', 'b', 'c', 'd'][idx], 
+                text: opt 
+              })),
+              answer: ['a', 'b', 'c', 'd'][q.correctAnswer],
+              explanation: `This question tests understanding of: ${q.concept}. Timestamp: ${q.timestamp}`,
+              topic: q.concept,
+              difficulty: 'medium' as const
+            });
+          });
+          
           const result = {
             videoId,
             hits: [], // No hits needed for automatically generated content
             summary: studyMaterials.summary,
-            topics: ['Generated Content'], // Simple topic for automatically generated content
-            flashcardsByTopic: {
-              'Generated Content': studyMaterials.flashcards.map(fc => ({
-                question: fc.question,
-                answer: fc.answer,
-                topic: 'Generated Content',
-                difficulty: 'medium' as const
-              }))
-            },
-            quizByTopic: {
-              'Generated Content': studyMaterials.quiz.map(q => ({
-                type: 'multiple_choice' as const,
-                prompt: q.question,
-                choices: q.options.map((opt, idx) => ({ 
-                  id: ['a', 'b', 'c', 'd'][idx], 
-                  text: opt 
-                })),
-                answer: ['a', 'b', 'c', 'd'][q.correctAnswer],
-                explanation: `This question tests understanding of: ${q.concept}. Timestamp: ${q.timestamp}`,
-                topic: q.concept,
-                difficulty: 'medium' as const
-              }))
-            }
+            topics,
+            flashcardsByTopic,
+            quizByTopic
           };
           
           return reply.send(result);

@@ -95,11 +95,21 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
   };
   
   const handleResultClick = (result: SearchResult) => {
-    console.log(`📍 [SEARCH-INTERFACE] Seeking to timestamp: ${result.timestamp} (${result.startSec}s)`);
+    console.log(`📍 [SEARCH-INTERFACE] Seeking to timestamp: ${result.timestamp} (${result.startSec}s) and starting playback`);
     
-    // Seek video player to timestamp
+    // Seek video player to timestamp and start playing
     if (videoPlayerRef.current) {
+      // First seek to the timestamp
       videoPlayerRef.current.seekTo(result.startSec);
+      
+      // Then start playing the video
+      // Small delay to ensure seek completes before playing
+      setTimeout(() => {
+        if (videoPlayerRef.current) {
+          videoPlayerRef.current.play();
+          console.log('▶️ [SEARCH-INTERFACE] Started video playback');
+        }
+      }, 100);
     }
     
     // Update URL with deep link
@@ -182,7 +192,7 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
         
         {/* Search Options */}
         <div className="mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-          Press Enter to search • Results will be clickable to jump to timestamps
+          Press Enter to search • Click results to jump to timestamp and autoplay
         </div>
       </form>
       
@@ -305,10 +315,10 @@ export const SearchInterface: React.FC<SearchInterfaceProps> = ({
                       </div>
                     </div>
                     
-                    {/* Click Icon */}
+                    {/* Play Icon */}
                     <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <svg className="h-4 w-4" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-6V7a2 2 0 00-2-2H5a2 2 0 00-2 2v3m0 4v3a2 2 0 002 2h14a2 2 0 002-2v-3M9 7h6" />
+                      <svg className="h-5 w-5" style={{ color: 'var(--accent-primary)' }} fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
                       </svg>
                     </div>
                   </div>

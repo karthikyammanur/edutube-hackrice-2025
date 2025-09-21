@@ -1,0 +1,35 @@
+
+> edutube-notes-web@0.0.0 dev
+> vite
+
+
+  VITE v5.4.20  ready in 144 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+6:48:08 AM [vite] hmr update /src/Summary.tsx, /src/styles.css
+6:48:36 AM [vite] hmr update /src/Summary.tsx, /src/styles.css
+6:48:47 AM [vite] hmr update /src/Summary.tsx, /src/styles.css
+6:49:07 AM [vite] hmr update /src/Summary.tsx, /src/styles.css
+6:51:28 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:51:35 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:51:41 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:51:51 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:51:59 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:58:12 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:58:21 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:58:31 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:58:44 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:58:52 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:59:20 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:59:26 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:59:34 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+6:59:50 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+7:00:06 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+7:00:17 AM [vite] hmr update /src/Quiz.tsx, /src/styles.css
+7:03:19 AM [vite] hmr update /src/Summary.tsx, /src/styles.css
+7:06:28 AM [vite] hmr update /src/Upload.tsx, /src/styles.css
+7:16:58 AM [vite] hmr update /src/components/SearchInterface.tsx, /src/styles.css
+7:17:30 AM [vite] hmr update /src/components/SearchInterface.tsx, /src/styles.css
+7:17:44 AM [vite] hmr update /src/components/SearchInterface.tsx, /src/styles.css
+7:18:03 AM [vite] hmr update /src/components/SearchInterface.tsx, /src/styles.css

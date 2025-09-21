@@ -12,6 +12,10 @@ export interface QuizQuestion {
 export interface Flashcard {
   question: string;
   answer: string;
+  topic?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  timestamp?: string;
+  reference?: string;
 }
 
 import type { VideoSegment } from '@edutube/types';

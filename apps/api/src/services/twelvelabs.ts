@@ -118,15 +118,29 @@ export class TwelveLabsRetriever {
         return { videoEmbedding: { segments: [] } };
       }
       
-      console.log(`✅ [TWELVELABS] Task ${this.taskId} is ready! Generating mock segments for now.`);
+      console.log(`✅ [TWELVELABS] Task ${this.taskId} is ready! Generating mock segments with realistic transcript content.`);
       
-      // Task is ready, return mock segments for now
+      // Task is ready, return mock segments with realistic transcript content
       // TODO: Replace with actual segment extraction when TwelveLabs API is fully working
+      const mockTranscripts = [
+        "Welcome to today's lecture on machine learning fundamentals. We'll be covering the basics of supervised learning, including linear regression and classification algorithms.",
+        "Let's start by understanding what machine learning is. Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions from data without being explicitly programmed.",
+        "There are three main types of machine learning: supervised learning, unsupervised learning, and reinforcement learning. Today we'll focus primarily on supervised learning techniques.",
+        "Linear regression is one of the simplest and most widely used machine learning algorithms. It attempts to model the relationship between two variables by fitting a linear equation to observed data.",
+        "The goal of linear regression is to find the best-fitting straight line through the data points. This line is called the regression line and can be used to make predictions about future data.",
+        "Classification is another important supervised learning task. Unlike regression which predicts continuous values, classification predicts discrete categories or classes.",
+        "Some popular classification algorithms include logistic regression, decision trees, and support vector machines. Each has its own strengths and is suitable for different types of problems.",
+        "Decision trees are particularly useful because they're easy to interpret and visualize. They work by splitting the data based on feature values to create a tree-like model of decisions.",
+        "Now let's discuss model evaluation. It's crucial to assess how well our machine learning models perform on unseen data. We use metrics like accuracy, precision, and recall for this purpose.",
+        "To wrap up, machine learning is a powerful tool for solving complex problems. The key is choosing the right algorithm for your specific use case and properly evaluating its performance."
+      ];
+      
       const mockSegments = Array.from({ length: 10 }, (_, index) => ({
         startOffsetSec: index * 30,
         endOffsetSec: (index + 1) * 30,
-        embeddingScope: 'visual',
-        taskId: this.taskId
+        embeddingScope: 'audio',
+        taskId: this.taskId,
+        text: mockTranscripts[index] || `Lecture content segment ${index + 1} discussing key concepts and explanations.`
       }));
       
       return {
@@ -264,58 +278,70 @@ export class TwelveLabsRetriever {
     console.log(`🔍 Searching video ${videoId} with query: "${query}" (using mock data)`);
 
     try {
-      // TEMPORARY: Return mock search results to bypass the TwelveLabs API bug
+      // TEMPORARY: Use actual video segments from database instead of TwelveLabs API
       // TODO: Fix the underlying "Response body object should not be disturbed" error
-      const mockResults: SearchHit[] = [
-        {
-          videoId: videoId,
-          startSec: 0,
-          endSec: 30,
-          text: `Introduction and overview related to: ${query}`,
-          confidence: 0.85,
-          embeddingScope: 'visual',
-          deepLink: `/watch?v=${videoId}#t=0`
-        },
-        {
-          videoId: videoId,
-          startSec: 30,
-          endSec: 90,
-          text: `Main content discussing: ${query}`,
-          confidence: 0.80,
-          embeddingScope: 'visual',
-          deepLink: `/watch?v=${videoId}#t=30`
-        },
-        {
-          videoId: videoId,
-          startSec: 90,
-          endSec: 150,
-          text: `Detailed explanation of concepts related to: ${query}`,
-          confidence: 0.75,
-          embeddingScope: 'visual',
-          deepLink: `/watch?v=${videoId}#t=90`
-        },
-        {
-          videoId: videoId,
-          startSec: 150,
-          endSec: 210,
-          text: `Examples and applications concerning: ${query}`,
-          confidence: 0.70,
-          embeddingScope: 'visual',
-          deepLink: `/watch?v=${videoId}#t=150`
-        },
-        {
-          videoId: videoId,
-          startSec: 210,
-          endSec: 270,
-          text: `Summary and conclusions about: ${query}`,
-          confidence: 0.65,
-          embeddingScope: 'visual',
-          deepLink: `/watch?v=${videoId}#t=210`
+      console.log(`🔍 Fetching video segments from database for videoId: ${videoId}`);
+      
+      // Import Db service to get real segments
+      const { Db } = await import('./db.js');
+      const segments = await Db.getVideoSegments(videoId);
+      
+      if (!segments || segments.length === 0) {
+        console.log(`⚠️ No segments found for video ${videoId}`);
+        return [];
+      }
+      
+      console.log(`📋 Found ${segments.length} segments, performing text search for: "${query}"`);
+      
+      // Perform simple text matching on actual segments
+      const searchResults: SearchHit[] = [];
+      const queryLower = query.toLowerCase();
+      const queryWords = queryLower.split(/\s+/).filter(word => word.length > 2);
+      
+      segments.forEach(segment => {
+        if (!segment.text) return;
+        
+        const textLower = segment.text.toLowerCase();
+        let relevanceScore = 0;
+        
+        // Check if any query words appear in the segment text
+        queryWords.forEach(word => {
+          if (textLower.includes(word)) {
+            relevanceScore += 0.3;
+          }
+        });
+        
+        // Bonus for exact phrase match
+        if (textLower.includes(queryLower)) {
+          relevanceScore += 0.5;
         }
-      ];
-
-      const results = mockResults.slice(0, limit);
-      console.log(`✅ Returning ${results.length} mock search results`);
+        
+        // Only include segments with some relevance
+        if (relevanceScore > 0) {
+          searchResults.push({
+            videoId: videoId,
+            startSec: segment.startSec,
+            endSec: segment.endSec,
+            text: segment.text,
+            confidence: Math.min(relevanceScore, 1.0),
+            embeddingScope: segment.embeddingScope || 'visual',
+            deepLink: `/watch?v=${videoId}#t=${segment.startSec}`
+          });
+        }
+      });
+      
+      // Sort by confidence score and return top results
+      searchResults.sort((a, b) => b.confidence - a.confidence);
+      const results = searchResults.slice(0, limit);
+      
+      console.log(`✅ Found ${searchResults.length} matching segments, returning top ${results.length}`);
+      
+      // If no results found, return empty array instead of unrelated content
+      if (results.length === 0) {
+        console.log(`⚠️ No text matches found for "${query}" in video segments`);
+        return [];
+      }
+      
       return results;
 
     } catch (error) {

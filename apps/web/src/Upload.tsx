@@ -285,61 +285,11 @@ export default function Upload(): JSX.Element {
                         </div>
                     </aside>
 
-                    {/* Main upload area */}
-                    <SectionCard ariaLabel="Lecture upload" className="">
-						<p className="text-lg font-medium" style={{color: 'var(--text-primary)'}}>Lecture Upload</p>
-                        <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            transition={{ type: 'spring', stiffness: 120, damping: 14 }}
-                            className="mt-4 rounded-2xl border-2 border-dashed p-12 sm:p-12 min-h-[360px] max-w-md w-full mx-auto flex flex-col items-center justify-center text-center transition-colors"
-                            style={{borderColor: 'var(--border-primary)'}}
-                        >
-                            <div className="h-16 w-16 rounded-xl border flex items-center justify-center" style={{backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)'}} aria-hidden>
-                                <motion.div whileHover={{ scale: 1.08 }}>
-                                    <AnimatedPlusIcon size={32} />
-                                </motion.div>
-                            </div>
-							<p className="mt-6 font-medium" style={{color: 'var(--text-primary)'}}>Drag & drop your lecture video</p>
-							<p className="text-sm mt-1" style={{color: 'var(--text-secondary)'}}>MP4, WebM up to 1GB</p>
-							<div className="mt-6">
-								<label className="inline-flex items-center px-5 py-3 rounded-xl font-medium transition cursor-pointer focus-visible:outline focus-visible:outline-offset-2" style={{backgroundColor: 'var(--accent-primary)', color: 'var(--text-inverse)', outlineColor: 'var(--accent-primary)'}}>
-                                    <input
-                                        type="file"
-                                        className="sr-only"
-                                        aria-label="Browse files"
-                                        accept="video/*"
-                                        onChange={(e) => {
-                                            const f = e.target.files?.[0];
-                                            if (f) handleFileSelected(f);
-                                        }}
-                                        disabled={isUploading}
-                                    />
-									<span>Browse Files</span>
-								</label>
-							</div>
-                        </motion.div>
-                        <p className="mt-6 text-sm" style={{color: 'var(--text-secondary)'}}>After upload, ask AI questions, get summaries, quizzes and flash cards — all without leaving this screen.</p>
-                        {status && (
-                            <div className="mt-4 p-3 rounded-lg card">
-                                <p className="text-sm" role="status" style={{color: 'var(--text-primary)'}}>
-                                    {status}
-                                </p>
-                                {lastVideoId && (
-                                    <p className="text-xs mt-1" style={{color: 'var(--text-muted)'}}>
-                                        Video ID: {lastVideoId}
-                                    </p>
-                                )}
-                                {(isUploading || isProcessing) && (
-                                    <div className="mt-2 w-full rounded-full h-1" style={{backgroundColor: 'var(--bg-tertiary)'}}>
-                                        <div className="h-1 rounded-full animate-pulse" style={{width: '60%', backgroundColor: 'var(--accent-primary)'}}></div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        
-                        {/* Video Player Section */}
+                    {/* Main content area */}
+                    <div className="space-y-8">
+                        {/* Video Player Section - Moved to top */}
                         {videoReady && lastVideoId && (
-                            <div className="mt-8">
+                            <SectionCard ariaLabel="Video Player">
                                 <div className="video-player-container">
                                     <VideoPlayer
                                         ref={videoPlayerRef}
@@ -368,32 +318,82 @@ export default function Upload(): JSX.Element {
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </SectionCard>
                         )}
                         
                         {/* Search Interface Section */}
                         {videoReady && lastVideoId && (
-                            <div className="mt-8">
-                                <SectionCard ariaLabel="Video Search">
-                                    <h3 className="text-lg font-medium mb-4" style={{color: 'var(--text-primary)'}}>
-                                        🔍 Search Video Content
-                                    </h3>
-                                    <SearchInterface
-                                        videoId={lastVideoId}
-                                        videoPlayerRef={videoPlayerRef}
-                                        placeholder="Search for specific topics, keywords, or concepts..."
-                                        showSummary={true}
-                                        maxResults={15}
-                                        onResultClick={(result) => {
-                                            console.log(`📍 [UPLOAD] Jumped to: ${result.timestamp} - "${result.text.slice(0, 50)}..."`);
-                                        }}
-                                        className="search-interface-container"
-                                    />
-                                </SectionCard>
-                            </div>
+                            <SectionCard ariaLabel="Video Search">
+                                <h3 className="text-lg font-medium mb-4" style={{color: 'var(--text-primary)'}}>
+                                    🔍 Search Video Content
+                                </h3>
+                                <SearchInterface
+                                    videoId={lastVideoId}
+                                    videoPlayerRef={videoPlayerRef}
+                                    placeholder="Search for specific topics, keywords, or concepts..."
+                                    showSummary={true}
+                                    maxResults={15}
+                                    onResultClick={(result) => {
+                                        console.log(`📍 [UPLOAD] Jumped to: ${result.timestamp} - "${result.text.slice(0, 50)}..."`);
+                                    }}
+                                    className="search-interface-container"
+                                />
+                            </SectionCard>
                         )}
-
-					</SectionCard>
+                        
+                        {/* Lecture Upload section - Moved to bottom */}
+                        <SectionCard ariaLabel="Lecture upload" className="">
+                            <p className="text-lg font-medium" style={{color: 'var(--text-primary)'}}>Lecture Upload</p>
+                            <motion.div
+                                whileHover={{ scale: 1.01 }}
+                                transition={{ type: 'spring', stiffness: 120, damping: 14 }}
+                                className="mt-4 rounded-2xl border-2 border-dashed p-12 sm:p-12 min-h-[360px] max-w-md w-full mx-auto flex flex-col items-center justify-center text-center transition-colors"
+                                style={{borderColor: 'var(--border-primary)'}}
+                            >
+                                <div className="h-16 w-16 rounded-xl border flex items-center justify-center" style={{backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)'}} aria-hidden>
+                                    <motion.div whileHover={{ scale: 1.08 }}>
+                                        <AnimatedPlusIcon size={32} />
+                                    </motion.div>
+                                </div>
+                                <p className="mt-6 font-medium" style={{color: 'var(--text-primary)'}}>Drag & drop your lecture video</p>
+                                <p className="text-sm mt-1" style={{color: 'var(--text-secondary)'}}>MP4, WebM up to 1GB</p>
+                                <div className="mt-6">
+                                    <label className="inline-flex items-center px-5 py-3 rounded-xl font-medium transition cursor-pointer focus-visible:outline focus-visible:outline-offset-2" style={{backgroundColor: 'var(--accent-primary)', color: 'var(--text-inverse)', outlineColor: 'var(--accent-primary)'}}>
+                                        <input
+                                            type="file"
+                                            className="sr-only"
+                                            aria-label="Browse files"
+                                            accept="video/*"
+                                            onChange={(e) => {
+                                                const f = e.target.files?.[0];
+                                                if (f) handleFileSelected(f);
+                                            }}
+                                            disabled={isUploading}
+                                        />
+                                        <span>Browse Files</span>
+                                    </label>
+                                </div>
+                            </motion.div>
+                            <p className="mt-6 text-sm" style={{color: 'var(--text-secondary)'}}>After upload, ask AI questions, get summaries, quizzes and flash cards — all without leaving this screen.</p>
+                            {status && (
+                                <div className="mt-4 p-3 rounded-lg card">
+                                    <p className="text-sm" role="status" style={{color: 'var(--text-primary)'}}>
+                                        {status}
+                                    </p>
+                                    {lastVideoId && (
+                                        <p className="text-xs mt-1" style={{color: 'var(--text-muted)'}}>
+                                            Video ID: {lastVideoId}
+                                        </p>
+                                    )}
+                                    {(isUploading || isProcessing) && (
+                                        <div className="mt-2 w-full rounded-full h-1" style={{backgroundColor: 'var(--bg-tertiary)'}}>
+                                            <div className="h-1 rounded-full animate-pulse" style={{width: '60%', backgroundColor: 'var(--accent-primary)'}}></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </SectionCard>
+                    </div>
 				</div>
 			</main>
 		</div>

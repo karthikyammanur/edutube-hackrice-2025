@@ -2,6 +2,7 @@ import React from 'react';
 import { FadeIn } from './components/animate-ui/primitives/core/fade-in';
 import { Mic, Send, Search } from 'lucide-react';
 import { apiFetch } from './lib';
+import { useStudyMaterials } from './hooks/use-study-materials';
 
 type SummaryData = {
   overview?: string;
@@ -20,13 +21,14 @@ type SearchResult = {
 
 export default function Summary(): JSX.Element {
   const [summaryData, setSummaryData] = React.useState<SummaryData | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string>('');
   const [videoTitle, setVideoTitle] = React.useState<string>('');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
   const [searchResults, setSearchResults] = React.useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = React.useState(false);
   const [chatQuery, setChatQuery] = React.useState<string>('');
+  
+  // Use shared study materials hook like Flashcards component
+  const { studyMaterials, loading, error, fetchStudyMaterials } = useStudyMaterials();
   
   // Get video ID from URL hash
   const videoId = React.useMemo(() => {
@@ -37,64 +39,57 @@ export default function Summary(): JSX.Element {
   React.useEffect(() => {
     async function loadSummary() {
       if (!videoId) {
-        setError('No video ID provided. Please upload a video first.');
-        setLoading(false);
+        setSummaryData({
+          title: 'No Video Selected',
+          overview: 'Please upload a video first to see its summary.'
+        });
         return;
       }
       
       try {
-        setLoading(true);
-        setError('');
-        
         // Check video status first
         const video = await apiFetch(`/videos/${videoId}/status`);
         setVideoTitle(video.title || 'Lecture Video');
         
         if (video.status !== 'ready') {
-          setError(`Video not ready. Status: ${video.status}. Please wait for processing to complete.`);
-          setLoading(false);
+          setSummaryData({
+            title: video.title || 'Processing',
+            overview: `Video is ${video.status}. Please wait for processing to complete before study materials will be available.`
+          });
           return;
         }
         
-        // Try to get study materials
-        try {
-          const studyMaterials = await apiFetch(`/study/generate`, {
-            method: 'POST',
-            body: JSON.stringify({ 
-              videoId,
-              length: 'long',
-              limits: { hits: 20 }
-            })
+        // Use shared context to get study materials (same as Flashcards)
+        const materials = await fetchStudyMaterials(videoId, {
+          limits: { hits: 20 },
+          length: 'long'
+        });
+        
+        if (materials?.summary) {
+          setSummaryData({
+            title: video.title || 'Lecture Summary',
+            overview: materials.summary,
+            keyConcepts: materials.keyConcepts || [], // Future enhancement
+            formulas: materials.formulas || [], // Future enhancement
+            cautions: materials.cautions || [] // Future enhancement
           });
-          
-          if (studyMaterials.summary) {
-            // Parse the summary into structured data
-            setSummaryData({
-              title: studyMaterials.title || video.title,
-              overview: studyMaterials.summary,
-              keyConcepts: studyMaterials.keyConcepts || [],
-              formulas: studyMaterials.formulas || [],
-              cautions: studyMaterials.cautions || []
-            });
-          } else {
-            setError('Summary not available. Try generating study materials first.');
-          }
-        } catch (err: any) {
-          if (err.message.includes('404') || err.message.includes('not found')) {
-            setError('Study materials not generated yet. Go back to upload page and click "Generate Materials".');
-          } else {
-            setError(`Error loading summary: ${err.message}`);
-          }
+        } else {
+          setSummaryData({
+            title: video.title || 'No Summary',
+            overview: 'Summary not available. Study materials may still be generating.'
+          });
         }
       } catch (err: any) {
-        setError(`Error loading video: ${err.message}`);
-      } finally {
-        setLoading(false);
+        console.error('Error loading summary:', err);
+        setSummaryData({
+          title: 'Error',
+          overview: `Error loading summary: ${err.message}`
+        });
       }
     }
     
     loadSummary();
-  }, [videoId]);
+  }, [videoId, fetchStudyMaterials]);
 
   async function handleSearch(query: string) {
     if (!videoId || !query.trim()) return;
@@ -132,7 +127,10 @@ export default function Summary(): JSX.Element {
     <div className="min-h-dvh" style={{backgroundColor: 'var(--bg-primary)'}}>
       <header className="sticky top-0 z-40 navbar" style={{borderBottomColor: 'var(--border-color)'}}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="#" className="text-lg font-semibold" style={{color: 'var(--text-primary)'}}>EduTube Notes</a>
+          <div className="flex items-center gap-4">
+            <a href="#" className="text-lg font-semibold" style={{color: 'var(--text-primary)'}}>EduTube Notes</a>
+            {videoTitle && <span className="text-sm" style={{color: 'var(--text-secondary)'}}>• {videoTitle}</span>}
+          </div>
           <nav className="flex items-center gap-4 text-sm">
             {videoId && (
               <a href={`#upload?videoId=${videoId}`} className="nav-link underline-offset-4 hover:underline">Back to video</a>

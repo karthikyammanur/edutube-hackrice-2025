@@ -142,7 +142,7 @@ export async function registerSearchRoutes(app: FastifyInstance) {
             
             summary = await gemini.summarize(
               context, 
-              `Create concise study notes from these "${query}" video segments. Focus on key concepts and timing.`
+              `Based on these search results about "${query}", write a natural, conversational summary that sounds like study notes from a helpful classmate. Include the key points and mention relevant timestamps in a natural way (like "Around minute 2, the professor explains..."). Keep it friendly and easy to understand, as if you're explaining it to a friend.`
             );
           } else {
             app.log.info('Skipping summary - insufficient content for meaningful summarization');

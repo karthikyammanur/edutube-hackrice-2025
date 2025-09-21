@@ -403,9 +403,9 @@ export async function registerVideoRoutes(app: FastifyInstance) {
               videoId: video.id,
               startSec: seg.startOffsetSec!,
               endSec: seg.endOffsetSec!,
-              text: seg.embeddingScope === 'visual-text' 
+              text: seg.text || (seg.embeddingScope === 'visual-text' 
                 ? `Visual content from ${seg.startOffsetSec}s to ${seg.endOffsetSec}s`
-                : `Audio content from ${seg.startOffsetSec}s to ${seg.endOffsetSec}s`,
+                : `Audio content from ${seg.startOffsetSec}s to ${seg.endOffsetSec}s`),
               embeddingScope: seg.embeddingScope,
               createdAt: now,
             }));

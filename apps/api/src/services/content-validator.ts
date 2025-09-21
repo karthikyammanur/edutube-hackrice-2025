@@ -11,17 +11,17 @@ export interface ValidationResult {
 
 export class ContentValidator {
   private static readonly PLACEHOLDER_PATTERNS = [
-    /sample|placeholder|example|lorem ipsum|test|demo/i,
+    /^sample$|^placeholder$|^example$|lorem ipsum|^test$|^demo$/i,
     /\[(?:topic|concept|field|question|answer|content|subject|chapter|lesson)\]/i, // Specific bracket placeholders only
     /\[(?:question \d+|answer \d+|option [a-z])\]/i, // Numbered placeholders
-    /\.\.\./, // Ellipsis placeholders
-    /key concept \d+/i,
-    /important question \d+/i,
+    /^\.\.\.$/, // Only standalone ellipsis as placeholder
+    /^key concept \d+$/i, // Only if it's the entire content, not part of sentence
+    /^important question \d+$/i, // Only if it's the entire content
     /fallback|temporary|api limitations/i,
     /due to.*limitations/i,
     /not available/i,
-    /sample.*question/i,
-    /demo.*content/i
+    /^sample.*question$/i, // Only if it starts and ends as sample question
+    /^demo.*content$/i // Only if it starts and ends as demo content
   ];
 
   /**

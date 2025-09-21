@@ -1,0 +1,167 @@
+
+> edutube-notes-api@1.0.0 dev
+> tsx watch src/index.ts
+
+Building server...
+Server built successfully, starting to listen...
+{"level":30,"time":1758456872300,"pid":59296,"hostname":"Shaheems-Laptop.local","msg":"Server listening at http://0.0.0.0:3000"}
+Server listen completed, setting up heartbeat...
+Heartbeat interval set up, server should be running...
+{"level":30,"time":1758456872301,"pid":59296,"hostname":"Shaheems-Laptop.local","msg":"API listening on \n      http://0.0.0.0:3000"}
+Self-testing server health...
+{"level":30,"time":1758456873320,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-1","req":{"method":"GET","url":"/health","hostname":"0.0.0.0:3000","remoteAddress":"127.0.0.1","remotePort":61605},"msg":"incoming request"}
+{"level":30,"time":1758456873327,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-1","res":{"statusCode":200},"responseTime":5.833374977111816,"msg":"request completed"}
+Self-test result: 200
+Server heartbeat: 2025-09-21T12:14:37.299Z
+{"level":30,"time":1758456879129,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-2","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61608},"msg":"incoming request"}
+{"level":30,"time":1758456879130,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-2","res":{"statusCode":204},"responseTime":1.2474164962768555,"msg":"request completed"}
+{"level":30,"time":1758456879132,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-3","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61608},"msg":"incoming request"}
+{"level":30,"time":1758456879133,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-3","res":{"statusCode":200},"responseTime":1.2243328094482422,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:14:42.299Z
+Server heartbeat: 2025-09-21T12:14:47.299Z
+{"level":30,"time":1758456889647,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-4","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61620},"msg":"incoming request"}
+{"level":30,"time":1758456889649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-4","res":{"statusCode":204},"responseTime":0.5622920989990234,"msg":"request completed"}
+{"level":30,"time":1758456889649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-5","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61620},"msg":"incoming request"}
+{"level":30,"time":1758456889649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-5","res":{"statusCode":200},"responseTime":0.39041709899902344,"msg":"request completed"}
+{"level":30,"time":1758456889651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-6","req":{"method":"OPTIONS","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/status","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61621},"msg":"incoming request"}
+{"level":30,"time":1758456889651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-6","res":{"statusCode":204},"responseTime":0.34879112243652344,"msg":"request completed"}
+{"level":30,"time":1758456889652,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-7","req":{"method":"GET","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/status","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61621},"msg":"incoming request"}
+{"level":30,"time":1758456890051,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-7","res":{"statusCode":200},"responseTime":399.3760004043579,"msg":"request completed"}
+{"level":30,"time":1758456890060,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-8","req":{"method":"GET","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/stream","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61625},"msg":"incoming request"}
+{"level":30,"time":1758456890114,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-8","res":{"statusCode":200},"responseTime":53.65766716003418,"msg":"request completed"}
+{"level":30,"time":1758456892291,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-9","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61621},"msg":"incoming request"}
+Server heartbeat: 2025-09-21T12:14:52.298Z
+{"level":30,"time":1758456892297,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-9","res":{"statusCode":204},"responseTime":5.908207893371582,"msg":"request completed"}
+{"level":30,"time":1758456892300,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-a","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61621},"msg":"incoming request"}
+{"level":30,"time":1758456892301,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-a","res":{"statusCode":200},"responseTime":1.1596250534057617,"msg":"request completed"}
+{"level":30,"time":1758456895969,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-b","req":{"method":"POST","url":"/search","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61629},"msg":"incoming request"}
+🔍 Searching video 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb with query: "computation" (using mock data)
+🔍 Fetching video segments from database for videoId: 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb
+📋 Found 10 segments, performing text search for: "computation"
+✅ Found 0 matching segments, returning top 0
+⚠️ No text matches found for "computation" in video segments
+{"level":30,"time":1758456896150,"pid":59296,"hostname":"Shaheems-Laptop.local","videoId":"7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb","query":"computation","rawResultsCount":0,"validResultsCount":0,"msg":"Video search performed with timestamp validation"}
+{"level":30,"time":1758456896151,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-b","res":{"statusCode":200},"responseTime":169.65212535858154,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:14:57.299Z
+{"level":30,"time":1758456901110,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-c","req":{"method":"POST","url":"/search","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61633},"msg":"incoming request"}
+🔍 Searching video 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb with query: "algorithm" (using mock data)
+🔍 Fetching video segments from database for videoId: 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb
+📋 Found 10 segments, performing text search for: "algorithm"
+✅ Found 4 matching segments, returning top 4
+{"level":30,"time":1758456901206,"pid":59296,"hostname":"Shaheems-Laptop.local","videoId":"7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb","query":"algorithm","rawResultsCount":4,"validResultsCount":4,"msg":"Video search performed with timestamp validation"}
+Server heartbeat: 2025-09-21T12:15:02.298Z
+{"level":30,"time":1758456903225,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-c","res":{"statusCode":200},"responseTime":2114.308584213257,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:15:07.299Z
+Server heartbeat: 2025-09-21T12:15:12.300Z
+Server heartbeat: 2025-09-21T12:15:17.301Z
+{"level":30,"time":1758456919644,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-d","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61637},"msg":"incoming request"}
+{"level":30,"time":1758456919645,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-d","res":{"statusCode":204},"responseTime":0.5953750610351562,"msg":"request completed"}
+{"level":30,"time":1758456919646,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-e","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61637},"msg":"incoming request"}
+{"level":30,"time":1758456919647,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-e","res":{"statusCode":200},"responseTime":1.2204170227050781,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:15:22.301Z
+Server heartbeat: 2025-09-21T12:15:27.301Z
+Server heartbeat: 2025-09-21T12:15:32.302Z
+Server heartbeat: 2025-09-21T12:15:37.304Z
+Server heartbeat: 2025-09-21T12:15:42.305Z
+Server heartbeat: 2025-09-21T12:15:47.307Z
+{"level":30,"time":1758456949649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-f","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61644},"msg":"incoming request"}
+{"level":30,"time":1758456949650,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-f","res":{"statusCode":204},"responseTime":0.5959997177124023,"msg":"request completed"}
+{"level":30,"time":1758456949651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-g","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61644},"msg":"incoming request"}
+{"level":30,"time":1758456949652,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-g","res":{"statusCode":200},"responseTime":0.4995841979980469,"msg":"request completed"}
+{"level":30,"time":1758456952248,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-h","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61644},"msg":"incoming request"}
+{"level":30,"time":1758456952250,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-h","res":{"statusCode":204},"responseTime":1.0585002899169922,"msg":"request completed"}
+{"level":30,"time":1758456952251,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-i","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61644},"msg":"incoming request"}
+{"level":30,"time":1758456952252,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-i","res":{"statusCode":200},"responseTime":0.3123750686645508,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:15:52.310Z
+Server heartbeat: 2025-09-21T12:15:57.312Z
+Server heartbeat: 2025-09-21T12:16:02.312Z
+Server heartbeat: 2025-09-21T12:16:07.314Z
+Server heartbeat: 2025-09-21T12:16:12.315Z
+Server heartbeat: 2025-09-21T12:16:17.315Z
+{"level":30,"time":1758456979653,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-j","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61649},"msg":"incoming request"}
+{"level":30,"time":1758456979655,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-j","res":{"statusCode":204},"responseTime":1.1832914352416992,"msg":"request completed"}
+{"level":30,"time":1758456979656,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-k","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61649},"msg":"incoming request"}
+{"level":30,"time":1758456979657,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-k","res":{"statusCode":200},"responseTime":0.4928741455078125,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:16:22.317Z
+Server heartbeat: 2025-09-21T12:16:27.318Z
+Server heartbeat: 2025-09-21T12:16:32.320Z
+Server heartbeat: 2025-09-21T12:16:37.321Z
+Server heartbeat: 2025-09-21T12:16:42.322Z
+Server heartbeat: 2025-09-21T12:16:47.323Z
+{"level":30,"time":1758457009649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-l","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61657},"msg":"incoming request"}
+{"level":30,"time":1758457009650,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-l","res":{"statusCode":204},"responseTime":0.6346673965454102,"msg":"request completed"}
+{"level":30,"time":1758457009652,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-m","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61657},"msg":"incoming request"}
+{"level":30,"time":1758457009652,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-m","res":{"statusCode":200},"responseTime":0.33641719818115234,"msg":"request completed"}
+{"level":30,"time":1758457012227,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-n","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61657},"msg":"incoming request"}
+{"level":30,"time":1758457012227,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-n","res":{"statusCode":204},"responseTime":0.4406251907348633,"msg":"request completed"}
+{"level":30,"time":1758457012230,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-o","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61657},"msg":"incoming request"}
+{"level":30,"time":1758457012230,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-o","res":{"statusCode":200},"responseTime":0.2667503356933594,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:16:52.324Z
+Server heartbeat: 2025-09-21T12:16:57.325Z
+Server heartbeat: 2025-09-21T12:17:02.326Z
+Server heartbeat: 2025-09-21T12:17:07.327Z
+Server heartbeat: 2025-09-21T12:17:12.328Z
+Server heartbeat: 2025-09-21T12:17:17.329Z
+{"level":30,"time":1758457039648,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-p","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61662},"msg":"incoming request"}
+{"level":30,"time":1758457039650,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-p","res":{"statusCode":204},"responseTime":0.9055004119873047,"msg":"request completed"}
+{"level":30,"time":1758457039651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-q","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61662},"msg":"incoming request"}
+{"level":30,"time":1758457039651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-q","res":{"statusCode":200},"responseTime":0.5710830688476562,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:17:22.330Z
+Server heartbeat: 2025-09-21T12:17:27.332Z
+Server heartbeat: 2025-09-21T12:17:32.333Z
+Server heartbeat: 2025-09-21T12:17:37.334Z
+Server heartbeat: 2025-09-21T12:17:42.335Z
+Server heartbeat: 2025-09-21T12:17:47.336Z
+{"level":30,"time":1758457069649,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-r","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61669},"msg":"incoming request"}
+{"level":30,"time":1758457069650,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-r","res":{"statusCode":204},"responseTime":0.36670780181884766,"msg":"request completed"}
+{"level":30,"time":1758457069651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-s","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61669},"msg":"incoming request"}
+{"level":30,"time":1758457069651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-s","res":{"statusCode":200},"responseTime":0.37820911407470703,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:17:52.342Z
+{"level":30,"time":1758457072448,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-t","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61669},"msg":"incoming request"}
+{"level":30,"time":1758457072449,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-t","res":{"statusCode":204},"responseTime":0.48770809173583984,"msg":"request completed"}
+{"level":30,"time":1758457072449,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-u","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61669},"msg":"incoming request"}
+{"level":30,"time":1758457072450,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-u","res":{"statusCode":200},"responseTime":0.19699954986572266,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:17:57.343Z
+Server heartbeat: 2025-09-21T12:18:02.344Z
+Server heartbeat: 2025-09-21T12:18:07.345Z
+Server heartbeat: 2025-09-21T12:18:12.346Z
+Server heartbeat: 2025-09-21T12:18:17.347Z
+{"level":30,"time":1758457099653,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-v","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61678},"msg":"incoming request"}
+{"level":30,"time":1758457099654,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-v","res":{"statusCode":204},"responseTime":1.1460838317871094,"msg":"request completed"}
+{"level":30,"time":1758457099680,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-w","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61678},"msg":"incoming request"}
+{"level":30,"time":1758457099682,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-w","res":{"statusCode":200},"responseTime":1.600541114807129,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:18:22.348Z
+Server heartbeat: 2025-09-21T12:18:27.350Z
+Server heartbeat: 2025-09-21T12:18:32.350Z
+Server heartbeat: 2025-09-21T12:18:37.351Z
+Server heartbeat: 2025-09-21T12:18:42.353Z
+Server heartbeat: 2025-09-21T12:18:47.354Z
+{"level":30,"time":1758457129651,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-x","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61681},"msg":"incoming request"}
+{"level":30,"time":1758457129652,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-x","res":{"statusCode":204},"responseTime":0.8488340377807617,"msg":"request completed"}
+{"level":30,"time":1758457129653,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-y","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61681},"msg":"incoming request"}
+{"level":30,"time":1758457129653,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-y","res":{"statusCode":200},"responseTime":0.33249950408935547,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:18:52.355Z
+{"level":30,"time":1758457132429,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-z","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61681},"msg":"incoming request"}
+{"level":30,"time":1758457132432,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-z","res":{"statusCode":200},"responseTime":0.8417081832885742,"msg":"request completed"}
+{"level":30,"time":1758457132432,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-10","req":{"method":"OPTIONS","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/status","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61693},"msg":"incoming request"}
+{"level":30,"time":1758457132432,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-10","res":{"statusCode":204},"responseTime":0.3055839538574219,"msg":"request completed"}
+{"level":30,"time":1758457132439,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-11","req":{"method":"GET","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/status","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61681},"msg":"incoming request"}
+{"level":30,"time":1758457132452,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-12","req":{"method":"OPTIONS","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61693},"msg":"incoming request"}
+{"level":30,"time":1758457132452,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-12","res":{"statusCode":204},"responseTime":0.3721656799316406,"msg":"request completed"}
+{"level":30,"time":1758457132456,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-13","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61693},"msg":"incoming request"}
+{"level":30,"time":1758457132458,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-13","res":{"statusCode":200},"responseTime":0.722416877746582,"msg":"request completed"}
+{"level":30,"time":1758457132503,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-11","res":{"statusCode":200},"responseTime":63.52466678619385,"msg":"request completed"}
+{"level":30,"time":1758457132841,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-14","req":{"method":"GET","url":"/videos/7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb/stream","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61696},"msg":"incoming request"}
+{"level":30,"time":1758457132883,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-14","res":{"statusCode":200},"responseTime":41.6096248626709,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:18:57.356Z
+{"level":30,"time":1758457137987,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-15","req":{"method":"POST","url":"/search","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":61699},"msg":"incoming request"}
+🔍 Searching video 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb with query: "machine learning" (using mock data)
+🔍 Fetching video segments from database for videoId: 7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb
+📋 Found 10 segments, performing text search for: "machine learning"
+✅ Found 8 matching segments, returning top 8
+{"level":30,"time":1758457138141,"pid":59296,"hostname":"Shaheems-Laptop.local","videoId":"7e22a3eb-95f5-4329-a2d2-c73b9c8c5efb","query":"machine learning","rawResultsCount":8,"validResultsCount":8,"msg":"Video search performed with timestamp validation"}
+{"level":30,"time":1758457140420,"pid":59296,"hostname":"Shaheems-Laptop.local","reqId":"req-15","res":{"statusCode":200},"responseTime":2432.523166656494,"msg":"request completed"}
+Server heartbeat: 2025-09-21T12:19:02.357Z
+Server heartbeat: 2025-09-21T12:19:07.358Z
+Server heartbeat: 2025-09-21T12:19:12.359Z
+Server heartbeat: 2025-09-21T12:19:17.361Z
