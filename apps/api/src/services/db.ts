@@ -53,11 +53,26 @@ export const Db = {
 
   async getVideoSegments(videoId: string): Promise<VideoSegment[]> {
     const db = getFirestore();
-    const qs = await db.collection(SEGMENTS_COLLECTION)
-      .where('videoId', '==', videoId)
-      .orderBy('startSec', 'asc')
-      .get();
-    return qs.docs.map((d) => d.data() as VideoSegment);
+    try {
+      const qs = await db.collection(SEGMENTS_COLLECTION)
+        .where('videoId', '==', videoId)
+        .orderBy('startSec', 'asc')
+        .get();
+      return qs.docs.map((d) => d.data() as VideoSegment);
+    } catch (error: any) {
+      // Handle Firestore index errors gracefully
+      if (error?.code === 9 || error?.message?.includes('FAILED_PRECONDITION') || error?.message?.includes('index')) {
+        console.warn('Firestore index missing, falling back to unordered query:', error.message);
+        // Fallback: Get segments without orderBy to avoid index requirement
+        const qs = await db.collection(SEGMENTS_COLLECTION)
+          .where('videoId', '==', videoId)
+          .get();
+        const segments = qs.docs.map((d) => d.data() as VideoSegment);
+        // Sort in memory as fallback
+        return segments.sort((a, b) => (a.startSec || 0) - (b.startSec || 0));
+      }
+      throw error;
+    }
   },
 
   async deleteVideoSegments(videoId: string): Promise<void> {

@@ -22,7 +22,7 @@ export interface SummarizeOptions extends BuildSummarizeChainOptions {
  * - GOOGLE_API_KEY must be set in the environment for the Gemini client.
  */
 export function buildSummarizeChain(options: BuildSummarizeChainOptions = {}) {
-  const { modelName = "gemini-1.5-flash", temperature = 0.2 } = options;
+  const { modelName = "gemini-1.5-flash", temperature = 0.1 } = options;
 
   const prompt = ChatPromptTemplate.fromMessages([
     [

@@ -19,6 +19,8 @@ async function buildServer() {
   await app.register(cors, {
     origin: (_origin, cb) => cb(null, true),
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
   app.get('/health', async () => ({ ok: true }));
