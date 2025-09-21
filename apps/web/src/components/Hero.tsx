@@ -12,7 +12,7 @@ export default function Hero(): JSX.Element {
 		<div className="max-w-4xl">
 			<h1 className="mt-4 text-4xl font-medium leading-tight sm:text-5xl">
 				Turn lectures into{" "}
-				<span style={{ fontFamily: '"Playfair Display", serif' }} className="text-primary text-[1em] align-baseline ">
+				<span style={{ fontFamily: '"Playfair Display", serif' }} className="text-primary text-[1em] align-baseline leading-tight">
 					smart
 				</span>{" "}
 				notes, interactive{" "}

@@ -87,13 +87,44 @@ export default function Quiz(): JSX.Element {
   const [selected, setSelected] = React.useState<string | null>(null);
   const [short, setShort] = React.useState<string>('');
   const [showAnswer, setShowAnswer] = React.useState<boolean>(false);
-  const q = demo[(index % demo.length + demo.length) % demo.length];
+	const [answers, setAnswers] = React.useState<Array<boolean | null>>(
+		Array(demo.length).fill(null),
+	);
+	const [finished, setFinished] = React.useState<boolean>(false);
+  const lastIndex = demo.length - 1;
+  const safeIndex = Math.min(Math.max(index, 0), lastIndex);
+  const q = demo[safeIndex];
 
-  React.useEffect(() => {
+	React.useEffect(() => {
     setSelected(null);
     setShort('');
     setShowAnswer(false);
   }, [index]);
+
+	function normalize(text: string): string {
+		return text.toLowerCase().trim();
+	}
+
+	function evaluateCurrent(): boolean {
+		if (q.questionType === 'multiple_choice') {
+			return selected === q.answer;
+		}
+		if (q.questionType === 'true_false') {
+			if (selected == null) return false;
+			return String(q.answer) === selected;
+		}
+		// short_answer
+		return normalize(short) === normalize(q.answer);
+	}
+
+	function recordAnswerIfNeeded(): void {
+		setAnswers((prev) => {
+			if (prev[safeIndex] !== null) return prev;
+			const copy = [...prev];
+			copy[safeIndex] = evaluateCurrent();
+			return copy;
+		});
+	}
 
   return (
     <div className="min-h-dvh bg-background">
@@ -106,7 +137,7 @@ export default function Quiz(): JSX.Element {
       <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="text-2xl sm:text-3xl font-semibold text-text">Practice Quiz</h1>
         <div className="mt-6 rounded-2xl border border-border bg-white p-6">
-          <p className="text-sm uppercase tracking-wide text-subtext">Question {index + 1} / {demo.length} · <span className="capitalize">{q.difficulty}</span></p>
+          <p className="text-sm uppercase tracking-wide text-subtext">Question {safeIndex + 1} / {demo.length} · <span className="capitalize">{q.difficulty}</span></p>
           <p className="mt-3 text-lg text-text">{q.questionText}</p>
 
           {q.questionType === 'multiple_choice' && (
@@ -121,7 +152,7 @@ export default function Quiz(): JSX.Element {
                   }`}>
                     <input
                       type="radio"
-                      name={`q-${index}`}
+                      name={`q-${safeIndex}`}
                       checked={isSelected}
                       onChange={() => setSelected(c.id)}
                       className="h-4 w-4"
@@ -146,7 +177,7 @@ export default function Quiz(): JSX.Element {
                   }`}>
                     <input
                       type="radio"
-                      name={`q-${index}`}
+                      name={`q-${safeIndex}`}
                       checked={isSelected}
                       onChange={() => setSelected(String(val))}
                       className="h-4 w-4"
@@ -175,10 +206,55 @@ export default function Quiz(): JSX.Element {
 
           <div className="mt-6 flex items-center gap-3">
             <button onClick={() => setShowAnswer(true)} className="inline-flex items-center px-5 py-3 rounded-xl border border-border bg-surface text-text hover:shadow-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text">Check answer</button>
-            <button onClick={() => setIndex((i) => i - 1)} className="inline-flex items-center px-5 py-3 rounded-xl border border-border bg-surface text-text hover:shadow-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text">Prev</button>
-            <button onClick={() => setIndex((i) => i + 1)} className="inline-flex items-center px-5 py-3 rounded-xl bg-text text-background hover:bg-primaryHover transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text">Next</button>
+            <button
+              onClick={() => { recordAnswerIfNeeded(); setIndex((i) => Math.max(i - 1, 0)); }}
+              disabled={safeIndex === 0}
+              className="inline-flex items-center px-5 py-3 rounded-xl border border-border bg-surface text-text hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-text"
+            >
+              Prev
+            </button>
+            {safeIndex < lastIndex ? (
+              <button
+                onClick={() => { recordAnswerIfNeeded(); setIndex((i) => Math.min(i + 1, lastIndex)); }}
+                className="inline-flex items-center px-5 py-3 rounded-xl bg-text text-background hover:bg-primaryHover transition disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-text"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={() => { recordAnswerIfNeeded(); setFinished(true); }}
+                className="inline-flex items-center px-5 py-3 rounded-xl bg-text text-background hover:bg-primaryHover transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-text"
+              >
+                Finish
+              </button>
+            )}
           </div>
         </div>
+
+        {finished && (
+          <div className="mt-8 rounded-2xl border border-border bg-white p-6">
+            <h2 className="text-xl font-semibold text-text">Recommended snippets</h2>
+            <p className="mt-2 text-subtext">Based on questions you missed, here are spots to rewatch.</p>
+            <div className="mt-4 space-y-3">
+              {answers.map((ok, i) => {
+                if (ok !== false) return null;
+                const topic = demo[i].questionText;
+                return (
+                  <div key={i} className="rounded-xl border border-border bg-surface p-4">
+                    <p className="text-sm font-medium text-text">Question {i + 1}</p>
+                    <p className="text-sm text-subtext mt-1 line-clamp-2">{topic}</p>
+                    <div className="mt-3 relative aspect-video w-full rounded-lg overflow-hidden border border-border bg-black/5 grid place-items-center text-subtext">
+                      <span>Video snippet placeholder</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {answers.every((v) => v !== false) && (
+                <p className="text-subtext">Nice work — no missed questions to review.</p>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
