@@ -2,7 +2,7 @@
 
 AI-powered lecture companion for searching, summarizing, and quizzing yourself on lecture videos.
 
-Built at HackRice 2025 by Shaheem Jaleel, Hrishikesh Naveenam, Magnus Graham.
+Built at HackRice 2025 by Karthik Yammanur, Shaheem Jaleel, Hrishikesh Naveenam, Magnus Graham.
 
 ## Live Demo
 [![Live Demo](https://img.youtube.com/vi/-R1D8gmRfco/maxresdefault.jpg)](https://www.youtube.com/watch?v=-R1D8gmRfco)
