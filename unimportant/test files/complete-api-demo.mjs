@@ -96,7 +96,7 @@ demonstrateAPI().then(() => {
   console.log("\n🧪 Testing Route Handler Logic...");
   
   // Import our TwelveLabsRetriever
-  import('./apps/api/src/services/twelvelabs.ts').then(async ({ TwelveLabsRetriever }) => {
+  import('../../apps/api/src/services/twelvelabs.ts').then(async ({ TwelveLabsRetriever }) => {
     try {
       console.log("📦 Testing TwelveLabsRetriever instantiation...");
       const retriever = new TwelveLabsRetriever();

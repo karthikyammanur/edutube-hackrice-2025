@@ -1,6 +1,6 @@
 // Test the TwelveLabs search functionality to debug the "Response body disturbed" error
-import { TwelveLabsRetriever } from './apps/api/src/services/twelvelabs.js';
-import { Db } from './apps/api/src/services/db.js';
+import { TwelveLabsRetriever } from '../apps/api/src/services/twelvelabs.js';
+import { Db } from '../apps/api/src/services/db.js';
 
 async function debugTwelveLabsSearch() {
   console.log('🔍 Debugging TwelveLabs search issue...\n');

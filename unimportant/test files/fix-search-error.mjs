@@ -1,7 +1,7 @@
 // Temporary fix for TwelveLabs search to bypass the "Response body disturbed" error
 // This creates a simple search implementation that works around the client library bug
 
-import { TwelveLabsRetriever } from './apps/api/src/services/twelvelabs.js';
+import { TwelveLabsRetriever } from '../apps/api/src/services/twelvelabs.js';
 
 // Patch the searchVideo method to avoid the Response body error
 async function fixTwelveLabsSearch() {
